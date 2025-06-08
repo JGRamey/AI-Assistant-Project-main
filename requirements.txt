@@ -3,7 +3,7 @@ ccxt==4.4.30
 requests==2.31.0
 google-api-python-client==2.114.0
 google-auth-oauthlib==1.2.0
-pygithub==2.0.3
+pygithub==2.6.1
 tweepy==4.4
 cryptography==41.0.8
 web3==7.3.0
