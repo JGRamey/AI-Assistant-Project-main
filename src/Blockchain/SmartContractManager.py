@@ -1,6 +1,7 @@
 import os
 from web3 import Web3
 from utils import log_audit
+import solcx
 
 class SmartContractManager:
     def __init__(self):
@@ -10,18 +11,32 @@ class SmartContractManager:
         self.account = self.w3.eth.account.from_key(os.environ.get('ETH_PRIVATE_KEY'))
         self.chain_id = int(os.environ.get('CHAIN_ID', 11155111))  # Sepolia testnet
 
+    def compile_contract(self, contract_source: str, contract_name: str) -> tuple:
+        """Compile a Solidity contract using solcx."""
+        try:
+            solcx.install_solc('0.8.0')
+            compiled = solcx.compile_source(
+                contract_source,
+                output_values=['abi', 'bin'],
+                solc_version='0.8.0'
+            )
+            contract_id = f"{contract_name}:{contract_name}"
+            abi = compiled[contract_id]['abi']
+            bytecode = compiled[contract_id]['bin']
+            log_audit(self.account.address, "compile_contract", {"contract_name": contract_name})
+            return abi, bytecode
+        except Exception as e:
+            log_audit(self.account.address, "compile_contract_error", {"error": str(e)})
+            raise
+
     def deploy_contract(self, contract_name: str, constructor_args: list, abi: list, bytecode: str) -> str:
         """Deploy a smart contract to the Ethereum blockchain."""
         try:
             contract = self.w3.eth.contract(abi=abi, bytecode=bytecode)
             constructor = contract.constructor(*constructor_args)
             
-            # Estimate gas
-            gas_estimate = constructor.estimate_gas({
-                'from': self.account.address
-            })
+            gas_estimate = constructor.estimate_gas({'from': self.account.address})
             
-            # Build transaction
             tx = constructor.build_transaction({
                 'from': self.account.address,
                 'nonce': self.w3.eth.get_transaction_count(self.account.address),
@@ -30,7 +45,6 @@ class SmartContractManager:
                 'gasPrice': self.w3.eth.gas_price
             })
             
-            # Sign and send transaction
             signed_tx = self.w3.eth.account.sign_transaction(tx, self.account.private_key)
             tx_hash = self.w3.eth.send_raw_transaction(signed_tx.rawTransaction)
             receipt = self.w3.eth.wait_for_transaction_receipt(tx_hash)
@@ -54,7 +68,6 @@ class SmartContractManager:
             contract = self.w3.eth.contract(address=contract_address, abi=abi)
             function = getattr(contract.functions, function_name)
             
-            # Build transaction
             tx = function(*args).build_transaction({
                 'from': self.account.address,
                 'nonce': self.w3.eth.get_transaction_count(self.account.address),
@@ -63,7 +76,6 @@ class SmartContractManager:
                 'gasPrice': self.w3.eth.gas_price
             })
             
-            # Sign and send transaction
             signed_tx = self.w3.eth.account.sign_transaction(tx, self.account.private_key)
             tx_hash = self.w3.eth.send_raw_transaction(signed_tx.rawTransaction)
             receipt = self.w3.eth.wait_for_transaction_receipt(tx_hash)
