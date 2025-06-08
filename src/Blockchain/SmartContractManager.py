@@ -12,7 +12,7 @@ class SmartContractManager:
         self.chain_id = int(os.environ.get('CHAIN_ID', 11155111))  # Sepolia testnet
 
     def compile_contract(self, contract_source: str, contract_name: str) -> tuple:
-        """Compile a Solidity contract using solcx."""
+        """Compile a Solidity contract using py-solc-x."""
         try:
             solcx.install_solc('0.8.0')
             compiled = solcx.compile_source(
