@@ -1,0 +1,29 @@
+{
+  "api_keys": {
+    "grok": "your-grok-key",
+    "coinbase": "your-coinbase-key",
+    "github": "your-github-key",
+    "google": "your-google-key",
+    "twitter": "your-twitter-key",
+    "mailchimp": "your-mailchimp-key",
+    "youtube": "your-youtube-key",
+    "infura": "your-infura-project-id",
+    "fred": "your-fred-api-key",
+    "supabase": "your-supabase-anon-key",
+    "stripe": "your-stripe-api-key"
+  },
+  "endpoints": {
+    "grok_api": "https://api.x.ai/grok",
+    "mimic3": "http://localhost:59125",
+    "sqs_queue": "https://sqs.us-east-1.amazonaws.com/your-account-id/agent-comms-queue",
+    "mailchimp": "https://api.mailchimp.com/3.0",
+    "youtube": "https://www.googleapis.com/youtube/v3",
+    "eth_rpc": "https://sepolia.infura.io/v3/{infura}",
+    "fred": "https://api.stlouisfed.org/fred",
+    "supabase": "https://your-supabase-project-id.supabase.co",
+    "stripe": "https://api.stripe.com/v1"
+  },
+  "task_parser": {
+    "context_retention_days": 30
+  }
+}

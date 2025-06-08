@@ -1,0 +1,124 @@
+{
+  "agents": {
+    "coding_agent": {
+      "read": ["grok", "shared_data"],
+      "write": ["grok", "shared_data", "messages"]
+    },
+    "email": {
+      "read": ["contacts", "shared_data"],
+      "write": ["email", "shared_data", "messages"]
+    },
+    "portfolio": {
+      "read": ["portfolio", "shared_data"],
+      "write": ["portfolio", "shared_data", "messages"]
+    },
+    "trading_agent": {
+      "read": ["market_data", "trades"],
+      "write": ["trades", "shared_data", "messages"]
+    },
+    "priority_agent": {
+      "read": ["tasks", "shared_data"],
+      "write": ["priority", "shared_data", "messages"]
+    },
+    "news_agent": {
+      "read": ["news", "shared_data"],
+      "write": ["news", "shared_data", "messages"]
+    },
+    "alert_manager": {
+      "read": ["alerts", "shared_data"],
+      "write": ["alerts", "shared_data", "messages"]
+    },
+    "crm": {
+      "read": ["crm", "shared_data"],
+      "write": ["crm", "shared_data", "messages"]
+    },
+    "notes_agent": {
+      "read": ["notes", "shared_data"],
+      "write": ["notes", "shared_data", "messages"]
+    },
+    "time_agent": {
+      "read": ["time", "shared_data"],
+      "write": ["time", "shared_data", "messages"]
+    },
+    "sentiment_agent": {
+      "read": ["sentiment", "shared_data"],
+      "write": ["sentiment", "shared_data", "messages"]
+    },
+    "snippet_agent": {
+      "read": ["snippets", "shared_data"],
+      "write": ["snippets", "shared_data", "messages"]
+    },
+    "stress_agent": {
+      "read": ["stress", "shared_data"],
+      "write": ["stress", "shared_data", "messages"]
+    },
+    "social_media": {
+      "read": ["social", "shared_data"],
+      "write": ["social", "shared_data", "messages"]
+    },
+    "learn": {
+      "read": ["learning", "shared_data"],
+      "write": ["learning", "shared_data", "messages"]
+    },
+    "voice": {
+      "read": ["voice", "shared_data"],
+      "write": ["voice", "shared_data", "messages"]
+    },
+    "key": {
+      "read": ["keys", "shared_data"],
+      "write": ["keys", "shared_data", "messages"]
+    },
+    "journal": {
+      "read": ["journal", "shared_data"],
+      "write": ["journal", "shared_data", "messages"]
+    },
+    "update": {
+      "read": ["updates", "shared_data"],
+      "write": ["updates", "shared_data", "messages"]
+    },
+    "smart_contract": {
+      "read": ["contracts", "shared_data"],
+      "write": ["contracts", "shared_data", "messages"]
+    },
+    "Financial_Agent": {
+      "read": ["financial", "expenses", "budgets", "revenue", "shared_data"],
+      "write": ["financial", "expenses", "budgets", "shared_data", "messages"]
+    },
+    "content_script": {
+      "read": ["content", "shared_data"],
+      "write": ["content", "shared_data", "messages"]
+    },
+    "social_platform": {
+      "read": ["social", "shared_data"],
+      "write": ["social", "shared_data", "messages"]
+    },
+    "marketing_manager": {
+      "read": ["marketing", "shared_data"],
+      "write": ["marketing", "shared_data", "messages"]
+    },
+    "revenue": {
+      "read": ["revenue", "shared_data"],
+      "write": ["revenue", "shared_data", "messages"]
+    },
+    "analytics": {
+      "read": ["analytics", "shared_data"],
+      "write": ["analytics", "shared_data", "messages"]
+    },
+    "SmartContractManager": {
+      "read": ["blockchain", "shared_data"],
+      "write": ["blockchain", "shared_data", "messages"]
+    },
+    "merchandise": {
+      "read": ["merchandise", "shared_data"],
+      "write": ["merchandise", "shared_data", "messages"]
+    },
+    "schedule": {
+      "read": ["schedule", "shared_data"],
+      "write": ["schedule", "shared_data", "messages"]
+    },
+    "inventory": {
+      "read": ["inventory", "shared_data"],
+      "write": ["inventory", "shared_data", "messages"]
+    }
+  }
+}

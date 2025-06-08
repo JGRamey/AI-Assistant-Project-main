@@ -1,0 +1,21 @@
+{
+  "name": "ai-assistant-dashboard",
+  "version": "1.0.0",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.45.4",
+    "axios": "^1.7.7",
+    "monaco-editor": "^0.50.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.26.2",
+    "styled-components": "^6.1.13"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "deploy": "aws s3 sync build/ s3://ai-assistant-dashboard-bucket"
+  },
+  "devDependencies": {
+    "react-scripts": "5.0.1"
+  }
+}
