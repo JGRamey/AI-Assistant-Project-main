@@ -20,7 +20,7 @@ class SmartContractManager:
                 output_values=['abi', 'bin'],
                 solc_version='0.8.0'
             )
-            contract_id = f"{contract_name}:{contract_name}"
+            contract_id = f":{contract_name}"
             abi = compiled[contract_id]['abi']
             bytecode = compiled[contract_id]['bin']
             log_audit(self.account.address, "compile_contract", {"contract_name": contract_name})
