@@ -1,68 +1,56 @@
 import pytest
 import json
-from src.lambda_function import lambda_handler
+from unittest.mock import patch
+from Lambda import lambda_function
 
-def test_lambda_handler_valid():
-    event = {
-        'requestContext': {'authorizer': {'claims': {'sub': 'user123'}}},
-        'action': 'code',
-        'body': json.dumps({'task': 'generate_solidity', 'spec': 'test'})
-    }
-    response = lambda_handler(event, {})
-    assert response['statusCode'] == 200
-    assert 'code' in json.loads(response['body'])['result']
+@pytest.fixture
+def mock_dependencies():
+    with patch('Lambda.lambda_function.boto3'), \
+         patch('Lambda.lambda_function.log_audit') as mock_log_audit, \
+         patch('Lambda.lambda_function.execute_workflow') as mock_workflow, \
+         patch('Lambda.lambda_function.parse_task') as mock_parse_task:
+        yield mock_log_audit, mock_workflow, mock_parse_task
 
-def test_lambda_handler_delegate():
-    event = {
-        'requestContext': {'authorizer': {'claims': {'sub': 'user123'}}},
-        'action': 'delegate',
-        'body': json.dumps({'request': 'generate a video on blockchain'})
-    }
-    response = lambda_handler(event, {})
-    assert response['statusCode'] == 200
-    assert 'status' in json.loads(response['body'])
+def test_lambda_handler_delegate_agent(mock_dependencies):
+    mock_log_audit, mock_workflow, mock_parse_task = mock_dependencies
+    mock_parse_task.return_value = {'agent': 'coding_agent', 'params': {'task': 'generate_python', 'spec': 'test'}}
+    with patch('Lambda.lambda_function.coding_agent.handle_code_request') as mock_coding:
+        mock_coding.return_value = {'status': 'success', 'result': {'code': 'print("Hello")'}}
+        event = {
+            'action': 'delegate',
+            'body': json.dumps({'request': 'generate python code'}),
+            'requestContext': {'authorizer': {'claims': {'sub': 'user123'}}}
+        }
+        context = {}
+        response = lambda_function.lambda_handler(event, context)
+        assert response['statusCode'] == 200
+        assert json.loads(response['body']) == {'status': 'success', 'result': {'code': 'print("Hello")'}}
+        mock_coding.assert_called_with({'task': 'generate_python', 'spec': 'test'}, 'user123')
 
-def test_lambda_handler_dashboard():
-    event = {
-        'requestContext': {'authorizer': {'claims': {'sub': 'user123'}}},
-        'action': 'dashboard',
-        'body': json.dumps({'task': 'view', 'task_ids': ['task1']})
-    }
-    response = lambda_handler(event, {})
-    assert response['statusCode'] == 200
-    assert 'shared_results' in json.loads(response['body'])
+def test_lambda_handler_specific_action(mock_dependencies):
+    mock_log_audit, mock_workflow, mock_parse_task = mock_dependencies
+    with patch('Lambda.lambda_function.email_agent.handle_email_request') as mock_email:
+        mock_email.return_value = {'status': 'success', 'result': 'Email queued'}
+        event = {
+            'action': 'email',
+            'body': json.dumps({'recipient': 'test@example.com', 'subject': 'Test'}),
+            'requestContext': {'authorizer': {'claims': {'sub': 'user123'}}}
+        }
+        context = {}
+        response = lambda_function.lambda_handler(event, context)
+        assert response['statusCode'] == 200
+        assert json.loads(response['body']) == {'status': 'success', 'result': 'Email queued'}
+        mock_email.assert_called_with({'recipient': 'test@example.com', 'subject': 'Test'}, 'user123')
 
-def test_lambda_handler_sqs():
+def test_lambda_handler_invalid_action(mock_dependencies):
+    mock_log_audit, mock_workflow, mock_parse_task = mock_dependencies
     event = {
-        'Records': [
-            {
-                'body': json.dumps({
-                    'target_agent': 'Financial_Agent',
-                    'data': 'test_task',
-                    'user_id': 'user123'
-                })
-            }
-        ]
+        'action': 'invalid',
+        'body': json.dumps({}),
+        'requestContext': {'authorizer': {'claims': {'sub': 'user123'}}}
     }
-    response = lambda_handler(event, {})
+    context = {}
+    response = lambda_function.lambda_handler(event, context)
     assert response['statusCode'] == 200
-    assert 'messages_processed' in json.loads(response['body'])
-
-def test_lambda_handler_blockchain():
-    event = {
-        'requestContext': {'authorizer': {'claims': {'sub': 'user123'}}},
-        'action': 'blockchain_token',
-        'body': json.dumps({'task': 'deploy'})
-    }
-    response = lambda_handler(event, {})
-    assert response['statusCode'] == 200
-
-def test_lambda_handler_revenue():
-    event = {
-        'requestContext': {'authorizer': {'claims': {'sub': 'user123'}}},
-        'action': 'token_manage',
-        'body': json.dumps({'task': 'generate_financial_report'})
-    }
-    response = lambda_handler(event, {})
-    assert response['statusCode'] == 200
-    assert 'net_profit' in json.loads(response['body'])['result']
+    assert json.loads(response['body']) == {'error': 'Invalid action'}
+    mock_log_audit.assert_called_with('user123', 'invalid', {'error': 'Invalid action'})

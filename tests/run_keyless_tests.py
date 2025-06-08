@@ -9,7 +9,7 @@ import traceback
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')))
 
 # Import components to test
-from lambda_function import lambda_handler
+from Lambda.lambda_function import lambda_handler
 from agents.coding_agent import handle_code_request
 from agents.Financial_Agent import handle_request as financial_agent_handle
 from agents.smart_contract_ai_agent import handle_smart_contract_request

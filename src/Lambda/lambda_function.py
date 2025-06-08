@@ -1,9 +1,12 @@
 import json
-import boto3
-from agents import coding_agent, email_agent, trading_agent, priority_agent, news_agent, alert_agent
-from agents import portfolio_agent, crm_agent, notes_agent, time_agent, sentiment_agent, snippet_agent
-from agents import stress_agent, social_agent, learning_agent, voice_agent, key_agent
-from agents import journal_agent, update_agent, smart_contract_ai_agent, Financial_Agent
+import os
+from unittest.mock import patch
+from agents import (
+    coding_agent, email_agent, trading_agent, priority_agent, news_agent, alert_agent,
+    portfolio_agent, crm_agent, notes_agent, time_agent, sentiment_agent, snippet_agent,
+    stress_agent, social_agent, learning_agent, voice_agent, key_agent,
+    journal_agent, update_agent, smart_contract_ai_agent, Financial_Agent
+)
 from Blockchain import SmartContractManager
 from platform.content import script_generator
 from platform.social import post_scheduler
@@ -11,8 +14,14 @@ from platform.marketing import newsletter_automation
 from platform.finances import revenue
 from platform.analytics import youtube_analytics
 from dashboard import render_dashboard
-from utils import encrypt_data, decrypt_data, log_audit, send_message, receive_messages, parse_task
+from utils.log_utils import encrypt_data, decrypt_data, log_audit, send_message, receive_messages, parse_task
 from workflows import execute_workflow
+
+# Mock boto3 for non-AWS environment
+if os.getenv('TESTING') == 'True':
+    import sys
+    from unittest.mock import MagicMock
+    sys.modules['boto3'] = MagicMock()
 
 def lambda_handler(event, context):
     try:
@@ -57,7 +66,7 @@ def lambda_handler(event, context):
             'sentiment': lambda: sentiment_agent.handle_sentiment_request(data, user_id),
             'snippet': lambda: snippet_agent.handle_snippet_request(data, user_id),
             'stress': lambda: stress_agent.handle_stress_request(data, user_id),
-            'expense': lambda: Financial_Agent.handle_request(data, user_id),
+            'expense': lambda: Financial_Agent.handle_financial_request(data, user_id),
             'social': lambda: social_agent.handle_social_request(data, user_id),
             'learn': lambda: learning_agent.handle_learning_request(data, user_id),
             'voice': lambda: voice_agent.handle_voice_request(data, user_id),
@@ -73,8 +82,8 @@ def lambda_handler(event, context):
             'token_manage': lambda: revenue.handle_revenue_request(data, user_id),
             'youtube_analytics': lambda: youtube_analytics.handle_analytics_request(data, user_id),
             'blockchain_token': lambda: SmartContractManager.handle_request(data, user_id),
-            'smart_contract': lambda: smart_contract_ai_agent.handle_request(data, user_id),
-            'financial_plan': lambda: Financial_Agent.handle_request(data, user_id)
+            'smart_contract': lambda: smart_contract_ai_agent.handle_contract_request(data, user_id),
+            'financial_plan': lambda: Financial_Agent.handle_financial_request(data, user_id)
         }
 
         result = handlers.get(action, lambda: {'error': 'Invalid action'})()
