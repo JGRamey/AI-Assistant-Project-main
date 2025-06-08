@@ -1,5 +1,5 @@
 boto3==1.35.39
-ccxt==2.9.53
+ccxt==4.4.30
 requests==2.31.0
 google-api-python-client==2.114.0
 google-auth-oauthlib==1.2.0
@@ -18,9 +18,4 @@ eth-account==0.12.0
 rustpython==0.3.0
 supabase==2.8.0
 stripe==10.10.0
-python-dotenv==1.0.1   
-# Note: Ensure that the versions are compatible with each other and your project requirements.
-# You can install these dependencies using pip:
-# pip install -r requirements.txt
-# Additional dependencies for specific functionalities
-# may be added as needed.
+python-dotenv==1.12.1
