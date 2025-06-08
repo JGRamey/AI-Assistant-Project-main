@@ -1,96 +1,78 @@
+import os
 import json
 import boto3
-import os
-import time
-from cryptography.fernet import Fernet
+import logging
+from datetime import datetime
+from dotenv import load_dotenv
 from supabase import create_client, Client
-import stripe
 
+# Load environment variables
+load_dotenv()
+
+# Initialize logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
+
+# Initialize AWS clients
+dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
+sqs = boto3.client('sqs', region_name='us-east-1')
+
+# Initialize Supabase client
 supabase_url = os.environ.get('SUPABASE_URL')
 supabase_key = os.environ.get('SUPABASE_KEY')
-supabase: Client = create_client(supabase_url, supabase_key)
-dynamodb = boto3.resource('dynamodb')
-sqs = boto3.client('sqs')
-queue_url = os.environ.get('SQS_QUEUE_URL')
+supabase: Client = create_client(supabase_url, supabase_key) if supabase_url and supabase_key else None
 
-def encrypt_data(data):
+def log_audit(user_id: str, action: str, details: dict):
+    """Log user actions to Supabase and logger."""
     try:
-        key = Fernet.generate_key()
-        f = Fernet(key)
-        encrypted = f.encrypt(json.dumps(data).encode())
-        return encrypted, key
+        if supabase:
+            supabase.table('audit_logs').insert({
+                'user_id': user_id,
+                'action': action,
+                'details': json.dumps(details),
+                'timestamp': datetime.utcnow().isoformat()
+            }).execute()
+        logger.info(f"Audit log: user={user_id}, action={action}, details={details}")
     except Exception as e:
-        raise ValueError(f"Encryption failed: {str(e)}")
+        logger.error(f"Failed to log audit: {str(e)}")
 
-def decrypt_data(encrypted, key):
-    try:
-        f = Fernet(key)
-        decrypted = f.decrypt(encrypted).decode()
-        return json.loads(decrypted)
-    except Exception as e:
-        raise ValueError(f"Decryption failed: {str(e)}")
-
-def log_audit(user_id, action, result):
-    try:
-        table = dynamodb.Table('AuditLog')
-        table.put_item(Item={
-            'user_id': user_id,
-            'action': action,
-            'result': json.dumps(result),
-            'timestamp': int(time.time())
-        })
-    except Exception as e:
-        print(f"Audit log failed: {str(e)}")
-
-def send_message(message, target_agent, user_id):
-    try:
-        sqs.send_message(
-            QueueUrl=queue_url,
-            MessageBody=json.dumps({
-                'target_agent': target_agent,
-                'message': message,
-                'user_id': user_id
-            })
-        )
-    except Exception as e:
-        raise RuntimeError(f"Failed to send message: {str(e)}")
-
-def receive_messages():
-    try:
-        response = sqs.receive_message(QueueUrl=queue_url, MaxNumberOfMessages=10)
-        return response.get('Messages', [])
-    except Exception as e:
-        print(f"Failed to receive messages: {str(e)}")
-        return []
-
-def parse_task(request, user_id):
-    if not request.strip():
-        return {'error': 'Empty request'}
-    return {'agent': 'Financial_Agent', 'params': {'task': request}}
-
-def store_shared_data(key, value, user_id):
+def store_shared_data(key: str, value: dict, user_id: str):
+    """Store data in DynamoDB with user-specific key."""
     try:
         table = dynamodb.Table('SharedData')
         table.put_item(Item={
             'key': f'{user_id}:{key}',
             'value': json.dumps(value),
-            'user_id': user_id
+            'timestamp': datetime.utcnow().isoformat()
         })
+        logger.info(f"Stored data: key={key}, user={user_id}")
     except Exception as e:
-        raise RuntimeError(f"Failed to store shared data: {str(e)}")
+        logger.error(f"Failed to store data: {str(e)}")
+        raise
 
-def get_shared_data(key, user_id):
+def get_shared_data(key: str, user_id: str) -> dict:
+    """Retrieve data from DynamoDB."""
     try:
         table = dynamodb.Table('SharedData')
         response = table.get_item(Key={'key': f'{user_id}:{key}'})
-        return json.loads(response['Item']['value']) if 'Item' in response else None
+        if 'Item' in response:
+            return json.loads(response['Item']['value'])
+        return {}
     except Exception as e:
-        print(f"Failed to get shared data: {str(e)}")
-        return None
+        logger.error(f"Failed to get data: {str(e)}")
+        return {}
 
-def handle_stripe_error(e):
-    return {
-        'status': 'error',
-        'error': str(e),
-        'code': getattr(e, 'code', None)
-    }
+def send_message(message: dict):
+    """Send message to SQS queue."""
+    try:
+        queue_url = os.environ.get('SQS_QUEUE_URL')
+        if not queue_url:
+            raise ValueError("SQS_QUEUE_URL not set")
+        sqs.send_message(
+            QueueUrl=queue_url,
+            MessageBody=json.dumps(message)
+        )
+        logger.info(f"Sent message to SQS: {message}")
+    except Exception as e:
+        logger.error(f"Failed to send message: {str(e)}")
+        raise
