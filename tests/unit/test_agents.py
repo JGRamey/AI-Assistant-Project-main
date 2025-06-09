@@ -14,7 +14,7 @@ from platform.social import post_scheduler
 from platform.marketing import newsletter_automation
 from platform.finances import revenue
 from platform.analytics import youtube_analytics
-from Blockchain import SmartContractManager
+from blockchain import SmartContractManager
 from utils import store_shared_data, get_shared_data
 
 # Fixture to set up environment variables
@@ -33,7 +33,7 @@ def mock_requests():
 # Fixture to mock Web3
 @pytest.fixture
 def mock_web3():
-    with patch('Blockchain.SmartContractManager.Web3') as mock_web3:
+    with patch('blockchain.SmartContractManager.Web3') as mock_web3:
         mock_instance = MagicMock()
         mock_web3.return_value = mock_instance
         mock_instance.is_connected.return_value = True

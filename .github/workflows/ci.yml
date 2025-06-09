@@ -1,4 +1,4 @@
-name: CI - Test Blockgnosis Project
+name: CI - Test AI Assistant Project
 
 on:
   push:
@@ -21,8 +21,9 @@ jobs:
         restore-keys: ${{ runner.os }}-pip-
     - run: |
         python -m pip install --upgrade pip
-        export PYTHONPATH=$PYTHONPATH:.
-        pip install -r requirements.txt pytest requests_mock python-dotenv
+        pip install -r requirements.txt
+        export PYTHONPATH=$GITHUB_WORKSPACE/src
+        flake8 src/ tests/
     - uses: actions/setup-node@v4
       with:
         node-version: '20'
@@ -46,7 +47,7 @@ jobs:
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         SQS_QUEUE_URL: ${{ secrets.SQS_QUEUE_URL }}
         YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
-      run: pytest tests/ --verbose --capture=no
+      run: pytest tests/unit/ --verbose --capture=no
     - run: |
         cd frontend
         npm test

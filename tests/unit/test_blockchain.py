@@ -1,10 +1,10 @@
 import pytest
-from Blockchain import SmartContractManager
+from blockchain import SmartContractManager
 from unittest.mock import patch, MagicMock
 
 @pytest.fixture
 def mock_web3():
-    with patch('Blockchain.SmartContractManager.Web3') as mock_web3:
+    with patch('blockchain.SmartContractManager.Web3') as mock_web3:
         mock_instance = MagicMock()
         mock_web3.return_value = mock_instance
         mock_instance.is_connected.return_value = True

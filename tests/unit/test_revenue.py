@@ -1,7 +1,7 @@
 import pytest
 import os
 import json
-from utils.log_utils import log_audit, store_shared_data, get_shared_data
+from utils import log_audit, store_shared_data, get_shared_data
 
 @pytest.fixture
 def setup_log_file(tmp_path):

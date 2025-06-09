@@ -7,17 +7,17 @@ from agents import (
     stress_agent, social_agent, learning_agent, voice_agent, key_agent,
     journal_agent, update_agent, smart_contract_ai_agent, Financial_Agent
 )
-from Blockchain import SmartContractManager
+from blockchain import SmartContractManager
 from platform.content import script_generator
 from platform.social import post_scheduler
 from platform.marketing import newsletter_automation
 from platform.finances import revenue
 from platform.analytics import youtube_analytics
 from dashboard import render_dashboard
-from utils.log_utils import encrypt_data, decrypt_data, log_audit, send_message, receive_messages, parse_task
 from workflows import execute_workflow
+from utils import encrypt_data, decrypt_data, log_audit, send_message, receive_messages, parse_task
 
-# Mock boto3 for non-AWS environment
+# Mock boto3 and missing modules for non-AWS environment
 if os.getenv('TESTING') == 'True':
     import sys
     from unittest.mock import MagicMock
