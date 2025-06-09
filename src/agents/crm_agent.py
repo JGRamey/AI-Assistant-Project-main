@@ -1,12 +1,6 @@
 import json
-from utils import log_audit, send_message, store_shared_data, get_shared_data
 import time
-from supabase import create_client, Client
-import os
-
-supabase_url = os.environ.get('SUPABASE_URL')
-supabase_key = os.environ.get('SUPABASE_KEY')
-supabase: Client = create_client(supabase_url, supabase_key)
+from utils import log_audit, send_message, store_shared_data, get_shared_data, supabase
 
 def handle_crm_request(data, user_id):
     try:

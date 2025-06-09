@@ -1,8 +1,10 @@
 import json
 import requests
 import time
+import os
 from utils import log_audit, send_message, store_shared_data, get_shared_data
 from Blockchain import SmartContractManager
+from config_manager import get_config
 
 def handle_code_request(data, user_id):
     try:
@@ -41,7 +43,7 @@ contract {spec.replace(' ', '_')} {{
 
         elif task == "grok_suggest":
             code = data.get("code", "")
-            headers = {'Authorization': f'Bearer {os.environ.get("GROK_API_KEY")}'}
+            headers = {'Authorization': f'Bearer {get_config("GROK_API_KEY")}'}
             grok_response = requests.post(
                 "https://api.x.ai/grok/code_suggest",
                 json={"code": code, "user_id": user_id},

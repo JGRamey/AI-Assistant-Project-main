@@ -3,11 +3,8 @@ import json
 import boto3
 import logging
 from datetime import datetime
-from dotenv import load_dotenv
 from supabase import create_client, Client
-
-# Load environment variables
-load_dotenv()
+from config_manager import get_config
 
 # Initialize logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -18,8 +15,8 @@ dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
 sqs = boto3.client('sqs', region_name='us-east-1')
 
 # Initialize Supabase client
-supabase_url = os.environ.get('SUPABASE_URL')
-supabase_key = os.environ.get('SUPABASE_KEY')
+supabase_url = get_config('endpoints', {}).get('supabase')
+supabase_key = get_config('SUPABASE_ANON_KEY')
 supabase: Client = create_client(supabase_url, supabase_key) if supabase_url and supabase_key else None
 
 def log_audit(user_id: str, action: str, details: dict):
@@ -65,9 +62,9 @@ def get_shared_data(key: str, user_id: str) -> dict:
 def send_message(message: dict):
     """Send message to SQS queue."""
     try:
-        queue_url = os.environ.get('SQS_QUEUE_URL')
+        queue_url = get_config('endpoints', {}).get('sqs_queue')
         if not queue_url:
-            raise ValueError("SQS_QUEUE_URL not set")
+            raise ValueError("SQS queue URL not set in config")
         sqs.send_message(
             QueueUrl=queue_url,
             MessageBody=json.dumps(message)

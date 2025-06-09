@@ -1,24 +1,37 @@
 {
-  "api_keys": {
-    "grok": "your-grok-key",
-    "coinbase": "your-coinbase-key",
-    "github": "your-github-key",
-    "google": "your-google-key",
-    "twitter": "your-twitter-key",
-    "mailchimp": "your-mailchimp-key",
-    "youtube": "your-youtube-key",
-    "infura": "your-infura-project-id",
-    "fred": "your-fred-api-key",
-    "supabase": "your-supabase-anon-key",
-    "stripe": "your-stripe-api-key"
-  },
+  "secret_keys": [
+    "GROK_API_KEY",
+    "COINBASE_API_KEY",
+    "GITHUB_API_KEY",
+    "GOOGLE_API_KEY",
+    "TWITTER_API_KEY",
+    "MAILCHIMP_API_KEY",
+    "YOUTUBE_API_KEY",
+    "INFURA_PROJECT_ID",
+    "FRED_API_KEY",
+    "SUPABASE_ANON_KEY",
+    "STRIPE_API_KEY"
+  ],
+  "ssm_parameters": [
+    "/ai-assistant/prod/GROK_API_KEY",
+    "/ai-assistant/prod/COINBASE_API_KEY",
+    "/ai-assistant/prod/GITHUB_API_KEY",
+    "/ai-assistant/prod/GOOGLE_API_KEY",
+    "/ai-assistant/prod/TWITTER_API_KEY",
+    "/ai-assistant/prod/MAILCHIMP_API_KEY",
+    "/ai-assistant/prod/YOUTUBE_API_KEY",
+    "/ai-assistant/prod/INFURA_PROJECT_ID",
+    "/ai-assistant/prod/FRED_API_KEY",
+    "/ai-assistant/prod/SUPABASE_ANON_KEY",
+    "/ai-assistant/prod/STRIPE_API_KEY"
+  ],
   "endpoints": {
     "grok_api": "https://api.x.ai/grok",
     "mimic3": "http://localhost:59125",
     "sqs_queue": "https://sqs.us-east-1.amazonaws.com/your-account-id/agent-comms-queue",
     "mailchimp": "https://api.mailchimp.com/3.0",
     "youtube": "https://www.googleapis.com/youtube/v3",
-    "eth_rpc": "https://sepolia.infura.io/v3/{infura}",
+    "eth_rpc": "https://sepolia.infura.io/v3/{INFURA_PROJECT_ID}",
     "fred": "https://api.stlouisfed.org/fred",
     "supabase": "https://your-supabase-project-id.supabase.co",
     "stripe": "https://api.stripe.com/v1"

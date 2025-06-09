@@ -1,13 +1,7 @@
 import json
 import time
-from supabase import create_client, Client
-import os
-from utils import log_audit, store_shared_data, get_shared_data
+from utils import log_audit, store_shared_data, get_shared_data, supabase
 from platform.finances import revenue
-
-supabase_url = os.environ.get('SUPABASE_URL')
-supabase_key = os.environ.get('SUPABASE_KEY')
-supabase: Client = create_client(supabase_url, supabase_key)
 
 def handle_request(data, user_id):
     try:
