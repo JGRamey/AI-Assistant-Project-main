@@ -11,7 +11,7 @@ def mock_dependencies() -> dict:
     including handlers, workflow, and audit logging.
 
     Returns:
-        dict: Dictionary containing all mocked dependencies
+        dict: Dictionary containing all mocked dependencies.
     """
     with patch('lambda_handler.lambda_function.get_handler') as mock_get_handler, \
          patch('lambda_handler.lambda_function.get_agent_handler') as mock_get_agent_handler, \
@@ -48,6 +48,7 @@ def mock_dependencies() -> dict:
 def test_lambda_handler_delegate_agent(
     mock_dependencies: dict,
 ) -> None:
+    """Test lambda handler with delegate action."""
     mock_parse_task = mock_dependencies['parse_task']
     mock_coding_agent_handler = mock_dependencies['coding_agent_handler']
 
@@ -76,6 +77,7 @@ def test_lambda_handler_delegate_agent(
 def test_lambda_handler_specific_action(
     mock_dependencies: dict,
 ) -> None:
+    """Test lambda handler with specific action."""
     mock_email_agent_handler = mock_dependencies['email_agent_handler']
     mock_email_agent_handler.return_value = {'status': 'success', 'result': 'Email queued'}
     event = {
@@ -95,6 +97,7 @@ def test_lambda_handler_specific_action(
 def test_lambda_handler_invalid_action(
     mock_dependencies: dict,
 ) -> None:
+    """Test lambda handler with invalid action."""
     mock_log_audit = mock_dependencies['log_audit']
     event = {
         'action': 'invalid',

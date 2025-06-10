@@ -15,13 +15,17 @@ def test_coding_agent_handle_code_request(
     mock_log_audit: MagicMock,
 ) -> None:
     """Test the handle_code_request function of the coding agent for code generation."""
+
     # Arrange
     user_id = "user123"
-    task_data = {'task': 'generate_python', 'spec': 'a simple function'}
-    
+    task_data = {
+        'task': 'generate_python',
+        'spec': 'a simple function'
+    }
+
     # Act
     result = coding_agent.handle_code_request(task_data, user_id)
-    
+
     # Assert
     assert result['status'] == 'success'
     assert 'def main():' in result['result']['code']
@@ -36,23 +40,24 @@ def test_email_agent_handle_email_request(
     mock_build: MagicMock,
 ) -> None:
     """Test the handle_email_request function of the email agent."""
+
     # Arrange
     user_id = "user456"
     mock_service = MagicMock()
     mock_build.return_value = mock_service
-    
+
     # Test sending an email
     send_data = {
         'task': 'send',
         'to': 'test@example.com',
         'subject': 'Hello',
         'body': 'This is a test.',
-        'credentials': MagicMock() # Mock credentials
+        'credentials': MagicMock()  # Mock credentials
     }
-    
+
     # Act
     result_send = email_agent.handle_email_request(send_data, user_id)
-    
+
     # Assert
     assert result_send['status'] == 'sent'
     mock_service.users().messages().send.assert_called_once()
@@ -65,11 +70,15 @@ def test_trading_agent_handle_trade_request(
     mock_coinbase: MagicMock,
 ) -> None:
     """Test the handle_trade_request function of the trading agent."""
+
     # Arrange
     user_id = "user789"
     mock_exchange = MagicMock()
     mock_coinbase.return_value = mock_exchange
-    mock_exchange.create_order.return_value = {'id': '12345', 'status': 'open'}
+    mock_exchange.create_order.return_value = {
+        'id': '12345',
+        'status': 'open'
+    }
 
     trade_data = {
         'task': 'execute_trade',
@@ -98,7 +107,9 @@ def test_trading_agent_handle_trade_request(
         amount=1,
         price=50000
     )
-    mock_log_audit.assert_called_with(user_id, 'trade_task', {'task': 'execute_trade'})
+    mock_log_audit.assert_called_with(user_id, 'trade_task', {
+        'task': 'execute_trade'
+    })
 
 @patch('agents.priority_agent.googleapiclient.discovery.build')
 @patch('agents.priority_agent.log_audit')
