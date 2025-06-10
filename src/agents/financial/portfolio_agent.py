@@ -1,4 +1,4 @@
-from utils import log_audit
+from src.utils.helpers import log_audit
 import ccxt
 
 

@@ -7,12 +7,14 @@ messaging that are used throughout the AI Assistant Project.
 import json
 import logging
 from datetime import datetime, timezone
-from typing import Any, Dict, Optional
+from typing import Dict, Any, Optional
+from cryptography.fernet import Fernet
 
 import boto3
 from supabase import create_client, Client
+import os
 
-from config_manager import get_config
+from src.config_manager import get_config
 
 # Initialize logging
 logging.basicConfig(
@@ -124,3 +126,25 @@ def send_message(message: Dict[str, Any]) -> None:
     except Exception as e:
         logger.error("Failed to send message: %s", str(e))
         raise
+
+def load_encryption_key():
+    """Loads the encryption key from an environment variable or creates one."""
+    key = os.environ.get("ENCRYPTION_KEY")
+    if not key:
+        key = Fernet.generate_key().decode()
+        os.environ["ENCRYPTION_KEY"] = key
+    return key.encode()
+
+
+def encrypt_data(data: str) -> str:
+    """Encrypts data using Fernet symmetric encryption."""
+    f = Fernet(load_encryption_key())
+    encrypted_data = f.encrypt(data.encode())
+    return encrypted_data.decode()
+
+
+def decrypt_data(encrypted_data: str) -> str:
+    """Decrypts data using Fernet symmetric encryption."""
+    f = Fernet(load_encryption_key())
+    decrypted_data = f.decrypt(encrypted_data.encode())
+    return decrypted_data.decode()

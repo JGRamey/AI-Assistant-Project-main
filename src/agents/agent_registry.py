@@ -1,12 +1,32 @@
 import os
 from agents import (
-    priority_agent, news_agent, alert_agent, crm_agent, notes_agent,
-    sentiment_agent, learning_agent,
-    voice_agent, key_agent, journal_agent, update_agent
+    priority_agent,
+    news_agent,
+    alert_agent,
+    crm_agent,
+    notes_agent,
+    sentiment_agent,
+    learning_agent,
+    voice_agent,
+    key_agent,
+    journal_agent,
+    update_agent
 )
-from agents.communication import email_agent, social_agent, texts_agent
-from agents.coding import coding_agent, smart_contract_ai_agent, snippet_agent
-from agents.financial import trading_agent, portfolio_agent, financial_agent
+from agents.communication import (
+    email_agent,
+    social_agent,
+    texts_agent
+)
+from agents.coding import (
+    coding_agent,
+    smart_contract_ai_agent,
+    snippet_agent
+)
+from agents.financial import (
+    trading_agent,
+    portfolio_agent,
+    financial_agent
+)
 from blockchain import SmartContractManager
 from core_platform.content import script_generator
 from core_platform.social import post_scheduler
@@ -17,13 +37,16 @@ from dashboard.dashboard import render_dashboard
 from workflows import execute_workflow
 from utils import get_config
 
+
 # Initialize SmartContractManager
 rpc_url = get_config('ETH_RPC_URL', os.environ.get('ETH_RPC_URL'))
 contract_address = get_config('CONTRACT_ADDRESS', '0xYourContract')
 contract_abi = get_config('CONTRACT_ABI', 'Your ABI')
 
+
 # A simple check to see if the ABI is the placeholder
 is_valid_abi = contract_abi != 'Your ABI'
+
 
 if rpc_url and is_valid_abi:
     manager = SmartContractManager(
@@ -33,6 +56,7 @@ if rpc_url and is_valid_abi:
     )
 else:
     manager = None
+
 
 # This registry maps action names to their handler functions
 HANDLER_REGISTRY = {
@@ -47,7 +71,6 @@ HANDLER_REGISTRY = {
     'portfolio': portfolio_agent.handle_portfolio_request,
     'crm': crm_agent.handle_crm_request,
     'notes': notes_agent.handle_notes_request,
-
     'sentiment': sentiment_agent.handle_sentiment_request,
     'snippet': snippet_agent.handle_snippet_request,
     'expense': financial_agent.handle_request,
@@ -79,8 +102,11 @@ HANDLER_REGISTRY = {
     'blockchain_token': smart_contract_ai_agent.handle_contract_request,
 }
 
+
 def get_handler(action_name):
+    """Retrieve handler function for a given action."""
     return HANDLER_REGISTRY.get(action_name)
+
 
 # This registry maps agent module names to the modules themselves
 # This is needed for the SQS and delegate actions that refer to agents by name
@@ -108,8 +134,8 @@ AGENT_MODULES = {
 }
 
 
-
 def get_agent_module(agent_name):
+    """Retrieve agent module by name."""
     return AGENT_MODULES.get(agent_name)
 
 
@@ -125,7 +151,6 @@ AGENT_HANDLERS = {
     'portfolio_agent': portfolio_agent.handle_portfolio_request,
     'crm_agent': crm_agent.handle_crm_request,
     'notes_agent': notes_agent.handle_notes_request,
-
     'sentiment_agent': sentiment_agent.handle_sentiment_request,
     'snippet_agent': snippet_agent.handle_snippet_request,
     'financial_agent': financial_agent.handle_request,
@@ -138,33 +163,11 @@ AGENT_HANDLERS = {
     'smart_contract_ai_agent': smart_contract_ai_agent.handle_contract_request
 }
 
-# This registry maps agent names to their handler functions
-AGENT_HANDLERS = {
-    'coding_agent': coding_agent.handle_code_request,
-    'email_agent': email_agent.handle_email_request,
-    'texts_agent': texts_agent.handle_texts_request,
-    'trading_agent': trading_agent.handle_trade_request,
-    'priority_agent': priority_agent.handle_priority_request,
-    'news_agent': news_agent.handle_news_request,
-    'alert_agent': alert_agent.handle_alert_request,
-    'portfolio_agent': portfolio_agent.handle_portfolio_request,
-    'crm_agent': crm_agent.handle_crm_request,
-    'notes_agent': notes_agent.handle_notes_request,
-
-    'sentiment_agent': sentiment_agent.handle_sentiment_request,
-    'snippet_agent': snippet_agent.handle_snippet_request,
-    'financial_agent': financial_agent.handle_request,
-    'social_agent': social_agent.handle_social_request,
-    'learning_agent': learning_agent.handle_learning_request,
-    'voice_agent': voice_agent.handle_voice_request,
-    'key_agent': key_agent.handle_key_request,
-    'journal_agent': journal_agent.handle_journal_request,
-    'update_agent': update_agent.handle_update_request,
-    'smart_contract_ai_agent': smart_contract_ai_agent.handle_contract_request,
-    'coding_agent': coding_agent.handle_code_request,
-}
 
 def get_agent_handler(agent_name):
-    """Retrieves the handler function for a given agent."""
+    """Retrieve handler function for a given agent."""
     return AGENT_HANDLERS.get(agent_name)
 
+
+if __name__ == '__main__':
+    pass

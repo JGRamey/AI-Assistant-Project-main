@@ -4,7 +4,6 @@ import boto3
 from botocore.exceptions import ClientError
 
 
-
 class ConfigManager:
     def __init__(self, config_path='config/config.json'):  # Default config path
         self.config = self._load_config_from_file(config_path)
@@ -13,7 +12,7 @@ class ConfigManager:
     def _load_config_from_file(self, config_path):
         """Loads configuration from a JSON file."""
         base_dir = os.path.dirname(os.path.abspath(__file__))  # .../src
-        project_root = os.path.dirname(base_dir) # .../
+        project_root = os.path.dirname(base_dir)  # .../
         abs_config_path = os.path.join(project_root, config_path)
 
         try:
@@ -52,7 +51,6 @@ class ConfigManager:
         except ClientError as e:
             print(f"Error loading secrets from SSM: {e}. Falling back to environment variables.")
             self._load_from_env()
-            self._load_from_env()
 
     def _load_from_env(self):
         """Loads secrets from environment variables (for local dev)."""
@@ -63,15 +61,16 @@ class ConfigManager:
                 self.config[key] = value
         print("Loaded secrets from environment variables.")
 
-
     def get(self, key, default=None):
         """Gets a configuration value."""
-                return self.config.get(key, default)
+        return self.config.get(key, default)
+
 
 _config_manager = None
 
 
 def get_config_manager():
+    """Get the singleton instance of ConfigManager."""
     global _config_manager
     if _config_manager is None:
         _config_manager = ConfigManager()
@@ -79,15 +78,5 @@ def get_config_manager():
 
 
 def get_config(key, default=None):
-    """Convenience function to access the config manager."""
-    return get_config_manager().get(key, default)
-
-def get_config_manager():
-    global _config_manager
-    if _config_manager is None:
-        _config_manager = ConfigManager()
-    return _config_manager
-
-def get_config(key, default=None):
-    """Convenience function to access the config manager."""
+    """Get a configuration value using the singleton ConfigManager."""
     return get_config_manager().get(key, default)

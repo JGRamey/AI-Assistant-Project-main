@@ -1,5 +1,5 @@
 import time
-from utils import log_audit, store_shared_data, supabase
+from src.utils.helpers import log_audit, store_shared_data, supabase
 
 
 def generate_report(data, user_id):

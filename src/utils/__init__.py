@@ -6,14 +6,24 @@ and configuration management.
 """
 
 # Re-export commonly used functions
-from .helpers import log_audit, store_shared_data, get_shared_data  # noqa: F401
-from .log_utils import parse_task  # noqa: F401
-from .config_manager import get_config  # noqa: F401
+from .helpers import (
+    log_audit,
+    store_shared_data,
+    get_shared_data,
+    send_message,
+    supabase,
+)
+from .log_utils import parse_task, encrypt_data, decrypt_data
+from .config_manager import get_config
 
 __all__ = [
     'log_audit',
     'store_shared_data',
     'get_shared_data',
+    'send_message',
+    'supabase',
     'parse_task',
+    'encrypt_data',
+    'decrypt_data',
     'get_config',
 ]

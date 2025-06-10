@@ -1,7 +1,7 @@
 import sqlite3
 import time
 import requests
-from utils import log_audit, encrypt_data, decrypt_data
+from src.utils.helpers import log_audit, encrypt_data, decrypt_data
 
 
 def handle_update_request(data, user_id):
@@ -24,8 +24,7 @@ def handle_update_request(data, user_id):
                 # Use Grok API to summarize changes
                 response = requests.post(
                     'https://api.x.ai/grok/summarize',
-                    json={'text': data.get('changes')},
-                    timeout=10,
+                    json={'text': data.get('changes')}
                 )
                 response.raise_for_status()
                 notes = response.json().get('summary', data.get('changes'))

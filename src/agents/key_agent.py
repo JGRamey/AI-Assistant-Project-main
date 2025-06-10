@@ -1,4 +1,4 @@
-from utils import log_audit, encrypt_data
+from src.utils.helpers import log_audit, encrypt_data
 import boto3
 import time
 

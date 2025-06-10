@@ -3,12 +3,21 @@ This agent handles communication via text messages.
 It requires user consent and strong privacy/security measures.
 """
 
-from utils import log_audit
+from src.utils.helpers import log_audit
 
 
 def handle_texts_request(data, user_id):
-    """Handles tasks related to text messages."""
-    # NOTE: Implementation requires a secure connection to the user's device
+    """
+    Handles tasks related to text messages.
+
+    Args:
+        data: Dictionary containing the request data
+        user_id: Identifier for the user making the request
+
+    Returns:
+        dict: Status and message about the request handling
+    """
+    # Implementation requires a secure connection to the user's device
     # and consent for message access.
     # This is a placeholder for future implementation.
     task = data.get('task')
@@ -18,3 +27,6 @@ def handle_texts_request(data, user_id):
         'message': 'Text message functionality not yet implemented.'
     }
 
+
+if __name__ == '__main__':
+    pass

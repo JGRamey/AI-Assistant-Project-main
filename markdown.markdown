@@ -1,7 +1,7 @@
 AI Assistant Project
 A modular AI system with agent-based task delegation, blockchain integration, and platform services.
 Setup
-python3.13 -m venv venv
+python3.12 -m venv venv
 source venv/bin/activate
 export PYTHONPATH=$PWD/src
 pip install -r requirements.txt

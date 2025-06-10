@@ -1,13 +1,22 @@
 import boto3
 import time
 import os
-from typing import Dict, Any, Optional
+from typing import Dict, Any
 
 from supabase import create_client, Client
 from utils import log_audit, get_shared_data, store_shared_data
 
 
 def render_dashboard(data: Dict[str, Any], user_id: str) -> Dict[str, Any]:
+    """Render or update the dashboard with user data.
+
+    Args:
+        data: Dictionary containing dashboard task and parameters
+        user_id: User identifier
+
+    Returns:
+        Dictionary containing dashboard data or status/error message
+    """
     try:
         supabase_url = os.environ.get('SUPABASE_URL')
         supabase_key = os.environ.get('SUPABASE_KEY')
@@ -15,7 +24,7 @@ def render_dashboard(data: Dict[str, Any], user_id: str) -> Dict[str, Any]:
         supabase = None
         if supabase_url and supabase_key:
             supabase: Client = create_client(supabase_url, supabase_key)
-        
+
         task = data.get('task')
         dynamodb = boto3.resource('dynamodb')
         table = dynamodb.Table('DashboardData')
@@ -41,11 +50,11 @@ def render_dashboard(data: Dict[str, Any], user_id: str) -> Dict[str, Any]:
 
             preferences = {}
             if supabase:
-                supabase_data = (supabase.table('user_preferences')
-                                .select('*')
-                                .eq('user_id', user_id)
-                                .execute())
-                preferences = supabase_data.data[0] if supabase_data.data else {}
+                preferences_data = supabase.table('user_preferences')\
+                    .select('*')\
+                    .eq('user_id', user_id)\
+                    .execute()
+                preferences = preferences_data.data[0] if preferences_data.data else {}
 
             dashboard_data.update({
                 'shared_results': shared_results,
@@ -68,20 +77,22 @@ def render_dashboard(data: Dict[str, Any], user_id: str) -> Dict[str, Any]:
             preferences = data.get('preferences', {})
             if not isinstance(preferences, dict):
                 return {"status": "error", "result": "Preferences must be a dictionary"}
-                
-            (supabase.table('user_preferences')
-             .upsert({
-                 'user_id': user_id,
-                 'preferences': preferences,
-                 'created_at': time.strftime("%Y-%m-%dT%H:%M:%SZ")
-             })
-             .execute())
+
+            supabase.table('user_preferences')\
+                .upsert({
+                    'user_id': user_id,
+                    'preferences': preferences,
+                    'created_at': time.strftime("%Y-%m-%dT%H:%M:%SZ")
+                })\
+                .execute()
+
             table.update_item(
                 Key={'user_id': user_id},
                 UpdateExpression='SET #attr = :val',
                 ExpressionAttributeNames={'#attr': data.get('entity', 'data')},
                 ExpressionAttributeValues={':val': data.get('value')}
             )
+
             store_shared_data(f'dashboard_{user_id}', {'updated': True}, user_id)
             return {'status': 'dashboard_updated'}
 
@@ -91,14 +102,16 @@ def render_dashboard(data: Dict[str, Any], user_id: str) -> Dict[str, Any]:
             tab = data.get('tab')
             if not tab:
                 return {"status": "error", "result": "Tab not specified"}
-                
+
             key = f'{tab}_{user_id}'
             tab_data = get_shared_data(key, user_id) or {}
-            supabase_data = (supabase.table(tab)
-                            .select('*')
-                            .eq('user_id', user_id)
-                            .execute())
-            tab_data.update({'supabase': supabase_data.data or []})
+
+            tab_data_supabase = supabase.table(tab)\
+                .select('*')\
+                .eq('user_id', user_id)\
+                .execute()
+
+            tab_data.update({'supabase': tab_data_supabase.data or []})
             return tab_data
 
         log_audit(user_id, f'dashboard_{task}', {'task': task})
@@ -106,3 +119,7 @@ def render_dashboard(data: Dict[str, Any], user_id: str) -> Dict[str, Any]:
     except Exception as e:
         log_audit(user_id, 'dashboard_task', {'error': str(e)})
         return {'error': str(e)}
+
+
+if __name__ == '__main__':
+    pass

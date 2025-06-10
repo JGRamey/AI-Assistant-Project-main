@@ -1,6 +1,6 @@
 import time
-from utils import log_audit, store_shared_data, supabase
-from core_platform.finances import revenue
+from src.utils.helpers import log_audit, store_shared_data, supabase
+
 
 
 def handle_request(data, user_id):
@@ -116,19 +116,6 @@ def handle_request(data, user_id):
             response["result"] = {"total": total,
                                   "category": category or "all"}
 
-        elif task == "financial_summary":
-            report_task = {'task': 'generate_financial_report'}
-            revenue_result = revenue.handle_revenue_request(report_task,
-                                                            user_id)
-            if revenue_result['status'] == 'error':
-                return {"status": "error", "result": revenue_result['result']}
-            result = revenue_result["result"]
-            response["result"] = {
-                "revenue": result["total_revenue"],
-                "expenses": result["total_expenses"],
-                "net_profit": result["net_profit"],
-                "details": result["revenue_breakdown"]
-            }
 
         store_shared_data(f'financial_{task_id}', response["result"], user_id)
         log_audit(user_id, f"financial_{task}", response)
