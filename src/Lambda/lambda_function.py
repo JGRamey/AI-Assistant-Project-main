@@ -1,9 +1,8 @@
 import json
 import os
-from unittest.mock import patch
 from platform.agent_registry import get_handler, get_agent_module
 from workflows import execute_workflow
-from utils import encrypt_data, decrypt_data, log_audit, send_message, receive_messages, parse_task
+from utils import log_audit, parse_task
 
 # Mock boto3 and missing modules for non-AWS environment
 if os.getenv('TESTING') == 'True':
@@ -13,7 +12,10 @@ if os.getenv('TESTING') == 'True':
 
 def lambda_handler(event, context):
     try:
-        user_id = event.get('requestContext', {}).get('authorizer', {}).get('claims', {}).get('sub', 'anonymous')
+        request_context = event.get('requestContext', {})
+        authorizer = request_context.get('authorizer', {})
+        claims = authorizer.get('claims', {})
+        user_id = claims.get('sub', 'anonymous')
         action = event.get('action')
         data = json.loads(event.get('body', '{}'))
 

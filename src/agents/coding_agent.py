@@ -1,9 +1,7 @@
 import json
 import requests
 import time
-import os
 from utils import log_audit, send_message, store_shared_data, get_shared_data
-from Blockchain import SmartContractManager
 from config_manager import get_config
 
 def handle_code_request(data, user_id):
@@ -39,19 +37,23 @@ contract {spec.replace(' ', '_')} {{
     }}
 }}
             """
-            send_message({"code": response["result"], "task_id": task_id}, "smart_contract_ai_agent", user_id)
+            message_body = {"code": response["result"], "task_id": task_id}
+            send_message(message_body, "smart_contract_ai_agent", user_id)
 
         elif task == "grok_suggest":
             code = data.get("code", "")
             headers = {'Authorization': f'Bearer {get_config("GROK_API_KEY")}'}
+            grok_url = "https://api.x.ai/grok/code_suggest"
+            grok_data = {"code": code, "user_id": user_id}
             grok_response = requests.post(
-                "https://api.x.ai/grok/code_suggest",
-                json={"code": code, "user_id": user_id},
+                grok_url,
+                json=grok_data,
                 headers=headers,
                 timeout=10
             )
             grok_response.raise_for_status()
-            response["result"]["suggestions"] = grok_response.json().get("suggestions", [])
+            suggestions = grok_response.json().get("suggestions", [])
+            response["result"]["suggestions"] = suggestions
 
         elif task == "save_session":
             session = data.get("session", {})
@@ -59,12 +61,14 @@ contract {spec.replace(' ', '_')} {{
             response["result"] = {"saved": True}
 
         elif task == "load_session":
-            session = get_shared_data(f'coding_session_{data.get("session_id", "")}', user_id)
+            session_id = data.get("session_id", "")
+            session = get_shared_data(f'coding_session_{session_id}', user_id)
             response["result"] = session or {}
 
         store_shared_data(f'coding_{task_id}', response["result"], user_id)
         if task in ["generate_rust", "generate_python", "generate_solidity"]:
-            send_message({"code": response["result"], "task_id": task_id}, "smart_contract_ai_agent", user_id)
+            message_body = {"code": response["result"], "task_id": task_id}
+            send_message(message_body, "smart_contract_ai_agent", user_id)
         
         log_audit(user_id, f"code_{task}", response)
         return response

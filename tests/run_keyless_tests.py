@@ -143,7 +143,7 @@ def run_tests():
         def test_script_generator():
             result = handle_script_request({'task': 'generate_script', 'keywords': 'blockchain', 'style': 'informal'}, 'test_user')
             assert result['status'] == 'success', "Script generator failed to create script"
-            assert 'result' in result, 'result'['script'] in result['result'], "No script in generator response"
+            assert 'result' in result and 'script' in result['result'], "No script in generator response"
             return result
 
         run_test('test_script_generator', test_script_generator)

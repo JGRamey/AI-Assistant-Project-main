@@ -1,4 +1,4 @@
-from utils import log_audit, encrypt_data
+from utils import log_audit, encrypt_data, decrypt_data
 import sqlite3
 import requests
 import time

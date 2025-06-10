@@ -1,5 +1,5 @@
 import web3
-from utils import log_audit, encrypt_data
+from utils import log_audit, encrypt_data, decrypt_data
 import json
 from web3 import Web3
 
