@@ -1,36 +1,53 @@
 import pytest
-from unittest.mock import patch
-import json
+from unittest.mock import patch, MagicMock
 from utils import log_audit, store_shared_data, get_shared_data
 
+@patch('utils.helpers.supabase')
+@patch('utils.helpers.logger')
+def test_log_audit(mock_logger, mock_supabase):
+    """Test that log_audit calls Supabase and the logger."""
+    # Arrange
+    mock_supabase.table.return_value.insert.return_value.execute.return_value = MagicMock()
 
-@pytest.fixture
-def setup_log_file(tmp_path):
-    log_file = tmp_path / "app.log"
-    with patch("utils.log_utils.LOG_FILE", str(log_file)):
-        yield log_file
+    # Act
+    log_audit("user123", "test_action", {"detail": "some_detail"})
+    
+    # Assert
+    mock_logger.info.assert_called_once_with(
+        "Audit log: user=user123, action=test_action, details={'detail': 'some_detail'}"
+    )
+    mock_supabase.table.assert_called_once_with('audit_logs')
+    mock_supabase.table().insert.assert_called_once()
+    insert_args, _ = mock_supabase.table().insert.call_args
+    assert insert_args[0]['user_id'] == 'user123'
+    assert insert_args[0]['action'] == 'test_action'
 
+@patch('utils.helpers.dynamodb')
+def test_store_and_get_shared_data(mock_dynamodb):
+    """Test storing and retrieving data from DynamoDB."""
+    mock_table = MagicMock()
+    mock_dynamodb.Table.return_value = mock_table
 
-@pytest.fixture
-def setup_storage_file(tmp_path):
-    storage_file = tmp_path / "shared_data.json"
-    with open(storage_file, 'w') as f:
-        json.dump({}, f)
-    with patch("utils.log_utils.STORAGE_PATH", str(storage_file)):
-        yield storage_file
+    # Test storing data
+    user_id = "user456"
+    key = "test_key"
+    value = {"data": "some_value"}
+    store_shared_data(key, value, user_id)
 
+    mock_dynamodb.Table.assert_called_with('SharedData')
+    mock_table.put_item.assert_called_once()
+    put_args, _ = mock_table.put_item.call_args
+    assert put_args[0]['Item']['key'] == f'{user_id}:{key}'
+    assert put_args[0]['Item']['value'] == '{"data": "some_value"}'
 
-def test_log_audit(setup_log_file):
-    log_audit("user123", "revenue_event", {"amount": 100, "currency": "USD"})
-    with open(setup_log_file, "r") as f:
-        log_content = f.read()
-    assert "user123" in log_content
-    assert "revenue_event" in log_content
-    assert "amount: 100" in log_content
-
-
-def test_store_shared_data(setup_storage_file):
-    store_shared_data("revenue_june", {"month": "June", "total": 1000})
-    data = get_shared_data("revenue_june")
-    assert data["month"] == "June"
-    assert data["total"] == 1000
+    # Test retrieving data
+    mock_table.get_item.return_value = {
+        'Item': {
+            'key': f'{user_id}:{key}',
+            'value': '{"data": "retrieved_value"}'
+        }
+    }
+    retrieved_data = get_shared_data(key, user_id)
+    
+    mock_table.get_item.assert_called_with(Key={'key': f'{user_id}:{key}'})
+    assert retrieved_data == {"data": "retrieved_value"}

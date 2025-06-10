@@ -1,6 +1,6 @@
-import json
 import time
-from utils import log_audit, send_message, store_shared_data, get_shared_data, supabase
+from utils import log_audit, send_message, store_shared_data, supabase
+
 
 def handle_crm_request(data, user_id):
     try:
@@ -18,12 +18,18 @@ def handle_crm_request(data, user_id):
             }).execute()
             response["result"] = {"added": True}
         elif task == "list_contacts":
-            contacts = supabase.table('crm_contacts').select('*').eq('user_id', user_id).execute()
+            contacts = (
+                supabase.table('crm_contacts')
+                .select('*')
+                .eq('user_id', user_id)
+                .execute()
+            )
             response["result"] = contacts.data
         elif task == "send_campaign":
             campaign = data.get("campaign", {})
             store_shared_data(f'crm_campaign_{task_id}', campaign, user_id)
-            send_message({"campaign": campaign, "task_id": task_id}, "marketing_manager", user_id)
+            message_body = {"campaign": campaign, "task_id": task_id}
+            send_message(message_body, "marketing_manager", user_id)
             response["result"] = {"sent": True}
 
         store_shared_data(f'crm_{task_id}', response["result"], user_id)

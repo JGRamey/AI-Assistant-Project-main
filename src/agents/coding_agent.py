@@ -1,8 +1,8 @@
-import json
 import requests
 import time
 from utils import log_audit, send_message, store_shared_data, get_shared_data
 from config_manager import get_config
+
 
 def handle_code_request(data, user_id):
     try:
@@ -69,7 +69,7 @@ contract {spec.replace(' ', '_')} {{
         if task in ["generate_rust", "generate_python", "generate_solidity"]:
             message_body = {"code": response["result"], "task_id": task_id}
             send_message(message_body, "smart_contract_ai_agent", user_id)
-        
+
         log_audit(user_id, f"code_{task}", response)
         return response
     except Exception as e:

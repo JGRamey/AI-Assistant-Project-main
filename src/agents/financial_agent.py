@@ -1,7 +1,7 @@
-import json
 import time
-from utils import log_audit, store_shared_data, get_shared_data, supabase
-from platform.finances import revenue
+from utils import log_audit, store_shared_data, supabase
+from core_platform.finances import revenue
+
 
 def handle_request(data, user_id):
     try:
@@ -15,16 +15,23 @@ def handle_request(data, user_id):
             annual_income = data.get("annual_income", 50000)
             savings_rate = data.get("savings_rate", 0.15)
             expected_return = data.get("expected_return", 0.07)
-            
-            if any(v < 0 for v in [age, retirement_age, annual_income, savings_rate, expected_return]):
+
+            params = [age, retirement_age, annual_income, savings_rate,
+                      expected_return]
+            if any(v < 0 for v in params):
                 return {"status": "error", "result": "Invalid input parameters"}
-                
+
             years_to_retirement = retirement_age - age
             if years_to_retirement <= 0:
-                return {"status": "error", "result": "Retirement age must be greater than current age"}
-                
+                msg = "Retirement age must be greater than current age"
+                return {"status": "error", "result": msg}
+
             annual_savings = annual_income * savings_rate
-            future_value = annual_savings * ((1 + expected_return) ** years_to_retirement - 1) / expected_return
+            future_value = (
+                annual_savings *
+                (((1 + expected_return) ** years_to_retirement - 1) /
+                 expected_return)
+            )
             response["result"] = {
                 "retirement_savings": round(future_value, 2),
                 "years_to_retirement": years_to_retirement
@@ -34,15 +41,17 @@ def handle_request(data, user_id):
             risk_tolerance = data.get("risk_tolerance", "moderate").lower()
             investment_horizon = data.get("investment_horizon", 10)
             if investment_horizon <= 0:
-                return {"status": "error", "result": "Investment horizon must be positive"}
-                
+                msg = "Investment horizon must be positive"
+                return {"status": "error", "result": msg}
+
             portfolio = {
                 "conservative": {"stocks": 30, "bonds": 60, "cash": 10},
                 "moderate": {"stocks": 60, "bonds": 30, "cash": 10},
                 "aggressive": {"stocks": 80, "bonds": 15, "cash": 5}
             }
             response["result"] = {
-                "allocation": portfolio.get(risk_tolerance, portfolio["moderate"]),
+                "allocation": portfolio.get(risk_tolerance,
+                                            portfolio["moderate"]),
                 "horizon": investment_horizon
             }
 
@@ -50,8 +59,9 @@ def handle_request(data, user_id):
             income = data.get("income", 0)
             expenses = data.get("expenses", [])
             if income < 0 or any(exp.get("amount", 0) < 0 for exp in expenses):
-                return {"status": "error", "result": "Income and expenses cannot be negative"}
-                
+                msg = "Income and expenses cannot be negative"
+                return {"status": "error", "result": msg}
+
             total_expenses = sum(exp.get("amount", 0) for exp in expenses)
             savings = income - total_expenses
             supabase.table('budgets').insert({
@@ -72,7 +82,7 @@ def handle_request(data, user_id):
             amount = expense.get('amount')
             if amount is None or amount < 0:
                 return {"status": "error", "result": "Invalid expense amount"}
-                
+
             supabase.table('expenses').insert({
                 'user_id': user_id,
                 'amount': amount,
@@ -84,27 +94,37 @@ def handle_request(data, user_id):
             response["result"] = {"tracked": True}
 
         elif task == "list_expenses":
-            expenses = supabase.table('expenses').select('*').eq('user_id', user_id).execute()
-            response["result"] = expenses.data or []
+            expenses_query = (
+                supabase.table('expenses')
+                .select('*')
+                .eq('user_id', user_id)
+                .execute()
+            )
+            response["result"] = expenses_query.data or []
 
         elif task == "expense_summary":
             category = data.get("category")
-            query = supabase.table('expenses').select('amount').eq('user_id', user_id)
+            query = supabase.table('expenses').select('amount').eq('user_id',
+                                                                   user_id)
             if category:
                 query = query.eq('category', category)
             expenses = query.execute()
             total = sum(exp['amount'] for exp in expenses.data)
-            response["result"] = {"total": total, "category": category or "all"}
+            response["result"] = {"total": total,
+                                  "category": category or "all"}
 
         elif task == "financial_summary":
-            revenue_result = revenue.handle_revenue_request({'task': 'generate_financial_report'}, user_id)
+            report_task = {'task': 'generate_financial_report'}
+            revenue_result = revenue.handle_revenue_request(report_task,
+                                                            user_id)
             if revenue_result['status'] == 'error':
                 return {"status": "error", "result": revenue_result['result']}
+            result = revenue_result["result"]
             response["result"] = {
-                "revenue": revenue_result["result"]["total_revenue"],
-                "expenses": revenue_result["result"]["total_expenses"],
-                "net_profit": revenue_result["result"]["net_profit"],
-                "details": revenue_result["result"]["revenue_breakdown"]
+                "revenue": result["total_revenue"],
+                "expenses": result["total_expenses"],
+                "net_profit": result["net_profit"],
+                "details": result["revenue_breakdown"]
             }
 
         store_shared_data(f'financial_{task_id}', response["result"], user_id)

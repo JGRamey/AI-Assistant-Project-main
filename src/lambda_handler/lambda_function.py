@@ -1,6 +1,6 @@
 import json
 import os
-from platform.agent_registry import get_handler, get_agent_module
+from core_platform.agent_registry import get_handler, get_agent_module
 from workflows import execute_workflow
 from utils import log_audit, parse_task
 
@@ -9,6 +9,7 @@ if os.getenv('TESTING') == 'True':
     import sys
     from unittest.mock import MagicMock
     sys.modules['boto3'] = MagicMock()
+
 
 def lambda_handler(event, context):
     try:
@@ -26,17 +27,22 @@ def lambda_handler(event, context):
                 agent_module = get_agent_module(agent_name)
                 if agent_module:
                     agent_module.handle_message(message, user_id)
-            return {'statusCode': 200, 'body': json.dumps({'status': 'messages_processed'})}
+            response_body = json.dumps({'status': 'messages_processed'})
+            return {'statusCode': 200, 'body': response_body}
 
         if action == 'delegate':
             task_plan = parse_task(data.get('request', ''), user_id)
             if task_plan.get('workflow'):
-                result = execute_workflow({'workflow': task_plan['workflow'], **task_plan['params']}, user_id)
+                workflow_params = {
+                    'workflow': task_plan['workflow'], **task_plan['params']
+                }
+                result = execute_workflow(workflow_params, user_id)
             elif task_plan.get('agent'):
                 agent_name = task_plan['agent']
                 agent_module = get_agent_module(agent_name)
                 if agent_module:
-                    result = agent_module.handle_request(task_plan['params'], user_id)
+                    result = agent_module.handle_request(
+                        task_plan['params'], user_id)
                 else:
                     result = {'error': f'Unknown agent: {agent_name}'}
             else:
@@ -49,7 +55,7 @@ def lambda_handler(event, context):
         else:
             result = {'error': 'Invalid action'}
         log_audit(user_id, action, result)
-        
+
         return {
             'statusCode': 200,
             'headers': {

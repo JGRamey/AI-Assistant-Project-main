@@ -1,263 +1,211 @@
 import pytest
-import json
-import os
 from unittest.mock import patch, MagicMock
-import requests_mock
-from agents import (
-    coding_agent, email_agent, trading_agent, priority_agent, news_agent, alert_agent,
-    portfolio_agent, crm_agent, notes_agent, time_agent, sentiment_agent, snippet_agent,
-    stress_agent, social_agent, learning_agent, voice_agent, key_agent, journal_agent,
-    update_agent, smart_contract_ai_agent, Financial_Agent
-)
-from platform.content import script_generator
-from platform.social import post_scheduler
-from platform.marketing import newsletter_automation
-from platform.finances import revenue
-from platform.analytics import youtube_analytics
-from blockchain import SmartContractManager
-from utils import store_shared_data, get_shared_data
+from agents import coding_agent, email_agent, trading_agent, priority_agent, news_agent, alert_agent, crm_agent
 
-# Fixture to set up environment variables
-@pytest.fixture(autouse=True)
-def setup_env():
-    os.environ['TESTING'] = 'True'
-    yield
-    os.environ.pop('TESTING', None)
+@patch('agents.coding_agent.log_audit')
+@patch('agents.coding_agent.send_message')
+@patch('agents.coding_agent.store_shared_data')
+def test_coding_agent_handle_code_request(
+    mock_store_shared_data, mock_send_message, mock_log_audit
+):
+    """Test the handle_code_request function of the coding agent for code generation."""
+    # Arrange
+    user_id = "user123"
+    task_data = {'task': 'generate_python', 'spec': 'a simple function'}
+    
+    # Act
+    result = coding_agent.handle_code_request(task_data, user_id)
+    
+    # Assert
+    assert result['status'] == 'success'
+    assert 'def main():' in result['result']['code']
+    mock_store_shared_data.assert_called()
+    mock_send_message.assert_called_once()
+    mock_log_audit.assert_called_once()
 
-# Fixture to mock requests
-@pytest.fixture
-def mock_requests():
-    with requests_mock.Mocker() as m:
-        yield m
+@patch('agents.email_agent.build')
+@patch('agents.email_agent.log_audit')
+def test_email_agent_handle_email_request(mock_log_audit, mock_build):
+    """Test the handle_email_request function of the email agent."""
+    # Arrange
+    user_id = "user456"
+    mock_service = MagicMock()
+    mock_build.return_value = mock_service
+    
+    # Test sending an email
+    send_data = {
+        'task': 'send',
+        'to': 'test@example.com',
+        'subject': 'Hello',
+        'body': 'This is a test.',
+        'credentials': MagicMock() # Mock credentials
+    }
+    
+    # Act
+    result_send = email_agent.handle_email_request(send_data, user_id)
+    
+    # Assert
+    assert result_send['status'] == 'sent'
+    mock_service.users().messages().send.assert_called_once()
+    mock_log_audit.assert_called_with(user_id, 'email_task', {'task': 'send'})
 
-# Fixture to mock Web3
-@pytest.fixture
-def mock_web3():
-    with patch('blockchain.SmartContractManager.Web3') as mock_web3:
-        mock_instance = MagicMock()
-        mock_web3.return_value = mock_instance
-        mock_instance.is_connected.return_value = True
-        mock_instance.eth.account.from_key.return_value = MagicMock(address='0xMockAddress')
-        mock_instance.eth.get_transaction_count.return_value = 1
-        mock_instance.eth.contract.return_value.constructor.return_value.estimate_gas.return_value = 100000
-        mock_instance.eth.contract.return_value.constructor.return_value.build_transaction.return_value = {'mock': 'tx'}
-        mock_instance.eth.account.sign_transaction.return_value = MagicMock(rawTransaction='mock-tx')
-        mock_instance.eth.send_raw_transaction.return_value = 'mock-tx-hash'
-        mock_instance.eth.wait_for_transaction_receipt.return_value = {'status': 1, 'contractAddress': '0xContractAddress'}
-        mock_instance.eth.contract.return_value.functions.createTask.return_value.estimate_gas.return_value = 50000
-        mock_instance.eth.contract.return_value.functions.createTask.return_value.build_transaction.return_value = {'mock': 'tx'}
-        yield mock_web3
+@patch('agents.trading_agent.ccxt.coinbase')
+@patch('agents.trading_agent.log_audit')
+def test_trading_agent_handle_trade_request(mock_log_audit, mock_coinbase):
+    """Test the handle_trade_request function of the trading agent."""
+    # Arrange
+    user_id = "user789"
+    mock_exchange = MagicMock()
+    mock_coinbase.return_value = mock_exchange
+    mock_exchange.create_order.return_value = {'id': '12345', 'status': 'open'}
 
-# Fixture to mock file-based storage
-@pytest.fixture
-def mock_storage(tmpdir):
-    storage_file = tmpdir.join("shared_data.json")
-    with open(storage_file, 'w') as f:
-        json.dump({}, f)
-    with patch('utils.log_utils.STORAGE_PATH', str(storage_file)):
-        yield storage_file
+    trade_data = {
+        'task': 'execute_trade',
+        'symbol': 'BTC/USD',
+        'type': 'limit',
+        'side': 'buy',
+        'amount': 1,
+        'price': 50000,
+        'api_key': 'test_key',
+        'api_secret': 'test_secret'
+    }
 
-# Test results collector
-test_results = []
+    # Act
+    result = trading_agent.handle_trade_request(trade_data, user_id)
 
-def pytest_terminal_summary(terminalreporter):
-    terminalreporter.write("\n=== Test Results Summary ===\n")
-    for result in test_results:
-        status = "PASS" if result['passed'] else "FAIL"
-        terminalreporter.write(f"Test: {result['test_name']} - Status: {status}\n")
-        if not result['passed']:
-            terminalreporter.write(f"Issue: {result['error']}\n")
-        terminalreporter.write("-" * 50 + "\n")
+    # Assert
+    assert result['order']['id'] == '12345'
+    mock_coinbase.assert_called_once_with({
+        'apiKey': 'test_key',
+        'secret': 'test_secret'
+    })
+    mock_exchange.create_order.assert_called_once_with(
+        symbol='BTC/USD',
+        type='limit',
+        side='buy',
+        amount=1,
+        price=50000
+    )
+    mock_log_audit.assert_called_with(user_id, 'trade_task', {'task': 'execute_trade'})
 
-# Test Coding Agent
-def test_coding_agent(mock_requests, mock_web3, mock_storage):
-    try:
-        result = coding_agent.handle_code_request({'task': 'generate_python', 'spec': 'test'}, 'user123')
-        assert result['status'] == 'success', "Coding agent failed to generate Python code"
-        assert 'code' in result['result'], "No code found in coding agent response"
-        test_results.append({'test_name': 'test_coding_agent', 'passed': True})
-    except AssertionError as e:
-        test_results.append({'test_name': 'test_coding_agent', 'passed': False, 'error': str(e)})
+@patch('agents.priority_agent.googleapiclient.discovery.build')
+@patch('agents.priority_agent.log_audit')
+def test_priority_agent_handle_priority_request(mock_log_audit, mock_build):
+    """Test the handle_priority_request function of the priority agent."""
+    # Arrange
+    user_id = "user101"
+    mock_service = MagicMock()
+    mock_build.return_value = mock_service
+    
+    mock_events = {
+        'items': [
+            {'summary': 'Task 2', 'start': {'dateTime': '2025-01-01T10:00:00Z'}},
+            {'summary': 'Task 1', 'start': {'dateTime': '2025-01-01T09:00:00Z'}},
+            {'summary': 'Task 3', 'start': {'dateTime': '2025-01-01T11:00:00Z'}},
+        ]
+    }
+    mock_service.events().list().execute.return_value = mock_events
 
-# Test Email Agent
-def test_email_agent(mock_requests, mock_web3, mock_storage):
-    try:
-        result = email_agent.handle_email_request({'task': 'send_email', 'recipient': 'test@example.com', 'subject': 'Test'}, 'user123')
-        assert result['status'] == 'success', "Email agent failed to process send_email task"
-        test_results.append({'test_name': 'test_email_agent', 'passed': True})
-    except AssertionError as e:
-        test_results.append({'test_name': 'test_email_agent', 'passed': False, 'error': str(e)})
+    priority_data = {
+        'task': 'prioritize',
+        'credentials': MagicMock()
+    }
 
-# Test Trading Agent
-def test_trading_agent(mock_requests, mock_web3, mock_storage):
-    try:
-        result = trading_agent.handle_trade_request({'task': 'execute_trade', 'asset': 'BTC', 'amount': 0.1}, 'user123')
-        assert result['status'] == 'success', "Trading agent failed to execute trade"
-        test_results.append({'test_name': 'test_trading_agent', 'passed': True})
-    except AssertionError as e:
-        test_results.append({'test_name': 'test_trading_agent', 'passed': False, 'error': str(e)})
+    # Act
+    result = priority_agent.handle_priority_request(priority_data, user_id)
 
-# Test Priority Agent
-def test_priority_agent(mock_requests, mock_web3, mock_storage):
-    try:
-        result = priority_agent.handle_priority_request({'task': 'prioritize', 'tasks': ['task1', 'task2']}, 'user123')
-        assert result['status'] == 'success', "Priority agent failed to prioritize tasks"
-        test_results.append({'test_name': 'test_priority_agent', 'passed': True})
-    except AssertionError as e:
-        test_results.append({'test_name': 'test_priority_agent', 'passed': False, 'error': str(e)})
+    # Assert
+    assert len(result['tasks']) == 3
+    assert result['tasks'][0]['summary'] == 'Task 1'
+    assert result['tasks'][1]['summary'] == 'Task 2'
+    assert result['tasks'][2]['summary'] == 'Task 3'
+    mock_log_audit.assert_called_with(user_id, 'priority_task', {'task': 'prioritize'})
 
-# Test News Agent
-def test_news_agent(mock_requests, mock_web3, mock_storage):
-    try:
-        result = news_agent.handle_news_request({'task': 'fetch_news', 'topic': 'blockchain'}, 'user123')
-        assert result['status'] == 'success', "News agent failed to fetch news"
-        test_results.append({'test_name': 'test_news_agent', 'passed': True})
-    except AssertionError as e:
-        test_results.append({'test_name': 'test_news_agent', 'passed': False, 'error': str(e)})
+@patch('agents.news_agent.requests.get')
+@patch('agents.news_agent.log_audit')
+def test_news_agent_handle_news_request(mock_log_audit, mock_requests_get):
+    """Test the handle_news_request function of the news agent."""
+    # Arrange
+    user_id = "user112"
+    mock_response_news = MagicMock()
+    mock_response_news.json.return_value = {
+        'data': [
+            {'title': 'Big Crypto News'},
+            {'title': 'Some other news'},
+            {'title': 'Another piece on crypto'}
+        ]
+    }
+    mock_response_news.raise_for_status.return_value = None
+    mock_requests_get.return_value = mock_response_news
 
-# Test Alert Agent
-def test_alert_agent(mock_requests, mock_web3, mock_storage):
-    try:
-        result = alert_agent.handle_alert_request({'task': 'set_alert', 'condition': 'price > 100'}, 'user123')
-        assert result['status'] == 'success', "Alert agent failed to set alert"
-        test_results.append({'test_name': 'test_alert_agent', 'passed': True})
-    except AssertionError as e:
-        test_results.append({'test_name': 'test_alert_agent', 'passed': False, 'error': str(e)})
+    news_data = {'task': 'fetch_news'}
 
-# Test Portfolio Agent
-def test_portfolio_agent(mock_requests, mock_web3, mock_storage):
-    try:
-        result = portfolio_agent.handle_portfolio_request({'task': 'view_portfolio'}, 'user123')
-        assert result['status'] == 'success', "Portfolio agent failed to view portfolio"
-        test_results.append({'test_name': 'test_portfolio_agent', 'passed': True})
-    except AssertionError as e:
-        test_results.append({'test_name': 'test_portfolio_agent', 'passed': False, 'error': str(e)})
+    # Act
+    result_news = news_agent.handle_news_request(news_data, user_id)
 
-# Test CRM Agent
-def test_crm_agent(mock_requests, mock_web3, mock_storage):
-    try:
-        result = crm_agent.handle_crm_request({'task': 'add_contact', 'name': 'Test Contact', 'email': 'test@example.com'}, 'user123')
-        assert result['status'] == 'success', "CRM agent failed to add contact"
-        test_results.append({'test_name': 'test_crm_agent', 'passed': True})
-    except AssertionError as e:
-        test_results.append({'test_name': 'test_crm_agent', 'passed': False, 'error': str(e)})
+    # Assert
+    assert len(result_news['news']) == 2
+    assert result_news['news'][0]['title'] == 'Big Crypto News'
+    mock_requests_get.assert_called_with('https://api.coingecko.com/api/v3/news', timeout=10)
+    mock_log_audit.assert_called_with(user_id, 'news_task', {'task': 'fetch_news'})
 
-# Test Notes Agent
-def test_notes_agent(mock_requests, mock_web3, mock_storage):
-    try:
-        result = notes_agent.handle_notes_request({'task': 'create_note', 'content': 'Test note'}, 'user123')
-        assert result['status'] == 'success', "Notes agent failed to create note"
-        test_results.append({'test_name': 'test_notes_agent', 'passed': True})
-    except AssertionError as e:
-        test_results.append({'test_name': 'test_notes_agent', 'passed': False, 'error': str(e)})
+@patch('agents.alert_agent.boto3.client')
+@patch('agents.alert_agent.log_audit')
+def test_alert_agent_handle_alert_request(mock_log_audit, mock_boto3_client):
+    """Test the handle_alert_request function of the alert agent."""
+    # Arrange
+    user_id = "user113"
+    mock_sns_client = MagicMock()
+    mock_boto3_client.return_value = mock_sns_client
 
-# Test Time Agent
-def test_time_agent(mock_requests, mock_web3, mock_storage):
-    try:
-        result = time_agent.handle_time_request({'task': 'schedule_task', 'time': '2025-06-09T10:00:00Z'}, 'user123')
-        assert result['status'] == 'success', "Time agent failed to schedule task"
-        test_results.append({'test_name': 'test_time_agent', 'passed': True})
-    except AssertionError as e:
-        test_results.append({'test_name': 'test_time_agent', 'passed': False, 'error': str(e)})
+    alert_data = {
+        'task': 'set_alert',
+        'topic_arn': 'arn:aws:sns:us-east-1:123456789012:MyTopic',
+        'message': 'Price of BTC has reached $55,000'
+    }
 
-# Test Sentiment Agent
-def test_sentiment_agent(mock_requests, mock_web3, mock_storage):
-    try:
-        result = sentiment_agent.handle_sentiment_request({'task': 'analyze_sentiment', 'text': 'Great product!'}, 'user123')
-        assert result['status'] == 'success', "Sentiment agent failed to analyze text"
-        test_results.append({'test_name': 'test_sentiment_agent', 'passed': True})
-    except AssertionError as e:
-        test_results.append({'test_name': 'test_sentiment_agent', 'passed': False, 'error': str(e)})
+    # Act
+    result = alert_agent.handle_alert_request(alert_data, user_id)
 
-# Test Snippet Agent
-def test_snippet_agent(mock_requests, mock_web3, mock_storage):
-    try:
-        result = snippet_agent.handle_snippet_request({'task': 'save_snippet', 'code': 'print("Hello")'}, 'user123')
-        assert result['status'] == 'success', "Snippet agent failed to save snippet"
-        test_results.append({'test_name': 'test_snippet_agent', 'passed': True})
-    except AssertionError as e:
-        test_results.append({'test_name': 'test_snippet_agent', 'passed': False, 'error': str(e)})
+    # Assert
+    assert result['status'] == 'alert_sent'
+    mock_boto3_client.assert_called_once_with('sns')
+    mock_sns_client.publish.assert_called_once_with(
+        TopicArn='arn:aws:sns:us-east-1:123456789012:MyTopic',
+        Message='Trade Alert: Price of BTC has reached $55,000'
+    )
 
-# Test Stress Agent
-def test_stress_agent(mock_requests, mock_web3, mock_storage):
-    try:
-        result = stress_agent.handle_stress_request({'task': 'analyze_stress', 'data': {'heart_rate': 80}}, 'user123')
-        assert result['status'] == 'success', "Stress agent failed to analyze data"
-        test_results.append({'test_name': 'test_stress_agent', 'passed': True})
-    except AssertionError as e:
-        test_results.append({'test_name': 'test_stress_agent', 'passed': False, 'error': str(e)})
+@patch('agents.crm_agent.supabase')
+@patch('agents.crm_agent.log_audit')
+@patch('agents.crm_agent.send_message')
+@patch('agents.crm_agent.store_shared_data')
+def test_crm_agent_handle_crm_request(mock_store_shared_data, mock_send_message, mock_log_audit, mock_supabase):
+    """Test the handle_crm_request function of the crm agent."""
+    # Arrange
+    user_id = "user_crm_123"
+    
+    # Mock Supabase client
+    mock_supabase_client = MagicMock()
+    mock_supabase.table.return_value = mock_supabase_client
 
-# Test Social Agent
-def test_social_agent(mock_requests, mock_web3, mock_storage):
-    try:
-        result = social_agent.handle_social_request({'task': 'post_tweet', 'content': 'Test tweet'}, 'user123')
-        assert result['status'] == 'success', "Social agent failed to post tweet"
-        test_results.append({'test_name': 'test_social_agent', 'passed': True})
-    except AssertionError as e:
-        test_results.append({'test_name': 'test_social_agent', 'passed': False, 'error': str(e)})
+    # Test adding a contact
+    add_contact_data = {
+        'task': 'add_contact',
+        'contact': {'name': 'John Doe', 'email': 'john.doe@example.com', 'phone': '1234567890'}
+    }
+    mock_supabase_client.insert.return_value.execute.return_value = None
 
-# Test Learning Agent
-def test_learning_agent(mock_requests, mock_web3, mock_storage):
-    try:
-        result = learning_agent.handle_learning_request({'task': 'recommend_course', 'topic': 'Python'}, 'user123')
-        assert result['status'] == 'success', "Learning agent failed to recommend course"
-        test_results.append({'test_name': 'test_learning_agent', 'passed': True})
-    except AssertionError as e:
-        test_results.append({'test_name': 'test_learning_agent', 'passed': False, 'error': str(e)})
+    # Act
+    result_add = crm_agent.handle_crm_request(add_contact_data, user_id)
 
-# Test Voice Agent
-def test_voice_agent(mock_requests, mock_web3, mock_storage):
-    try:
-        result = voice_agent.handle_voice_request({'task': 'process_audio', 'audio_data': 'mock-audio'}, 'user123')
-        assert result['status'] == 'success', "Voice agent failed to process audio"
-        test_results.append({'test_name': 'test_voice_agent', 'passed': True})
-    except AssertionError as e:
-        test_results.append({'test_name': 'test_voice_agent', 'passed': False, 'error': str(e)})
-
-# Test Key Agent
-def test_key_agent(mock_requests, mock_web3, mock_storage):
-    try:
-        result = key_agent.handle_key_request({'task': 'generate_key'}, 'user123')
-        assert result['status'] == 'success', "Key agent failed to generate key"
-        test_results.append({'test_name': 'test_key_agent', 'passed': True})
-    except AssertionError as e:
-        test_results.append({'test_name': 'test_key_agent', 'passed': False, 'error': str(e)})
-
-# Test Journal Agent
-def test_journal_agent(mock_requests, mock_web3, mock_storage):
-    try:
-        result = journal_agent.handle_journal_request({'task': 'add_entry', 'content': 'Test entry'}, 'user123')
-        assert result['status'] == 'success', "Journal agent failed to add entry"
-        test_results.append({'test_name': 'test_journal_agent', 'passed': True})
-    except AssertionError as e:
-        test_results.append({'test_name': 'test_journal_agent', 'passed': False, 'error': str(e)})
-
-# Test Update Agent
-def test_update_agent(mock_requests, mock_web3, mock_storage):
-    try:
-        result = update_agent.handle_update_request({'task': 'update_config', 'config': {'setting': 'new_value'}}, 'user123')
-        assert result['status'] == 'success', "Update agent failed to update config"
-        store_shared_data('agent_config_user123', {'setting': 'new_value'})
-        config = get_shared_data('agent_config_user123')
-        assert config['setting'] == 'new_value', "Config not stored correctly"
-        test_results.append({'test_name': 'test_update_agent', 'passed': True})
-    except AssertionError as e:
-        test_results.append({'test_name': 'test_update_agent', 'passed': False, 'error': str(e)})
-
-# Test Smart Contract AI Agent
-def test_smart_contract_ai_agent(mock_requests, mock_web3, mock_storage):
-    try:
-        result = smart_contract_ai_agent.handle_contract_request({'task': 'deploy_contract', 'source': 'contract Test {}'}, 'user123')
-        assert result['status'] == 'success', "Smart contract AI agent failed to deploy contract"
-        test_results.append({'test_name': 'test_smart_contract_ai_agent', 'passed': True})
-    except AssertionError as e:
-        test_results.append({'test_name': 'test_smart_contract_ai_agent', 'passed': False, 'error': str(e)})
-
-# Test Financial Agent
-def test_Financial_Agent(mock_requests, mock_web3, mock_storage):
-    try:
-        result = Financial_Agent.handle_financial_request({'task': 'analyze_finances', 'data': {'income': 1000}}, 'user123')
-        assert result['status'] == 'success', "Financial agent failed to analyze finances"
-        test_results.append({'test_name': 'test_Financial_Agent', 'passed': True})
-    except AssertionError as e:
-        test_results.append({'test_name': 'test_Financial_Agent', 'passed': False, 'error': str(e)})
+    # Assert
+    assert result_add['status'] == 'success'
+    assert result_add['result']['added'] is True
+    mock_supabase.table.assert_called_with('crm_contacts')
+    mock_supabase_client.insert.assert_called_once_with({
+        'user_id': user_id,
+        'name': 'John Doe',
+        'email': 'john.doe@example.com',
+        'phone': '1234567890'
+    })
+    mock_log_audit.assert_called()

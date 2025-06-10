@@ -1,11 +1,16 @@
-import json
 import time
 from utils import log_audit, store_shared_data, supabase
 
+
 def generate_report(data, user_id):
     task_id = data.get('task_id', f"report_{int(time.time())}")
-    period = data.get('period', 'monthly')
-    expenses = supabase.table('expenses').select('*').eq('user_id', user_id).execute().data
+    expenses_query = (
+        supabase.table('expenses')
+        .select('*')
+        .eq('user_id', user_id)
+        .execute()
+    )
+    expenses = expenses_query.data
     summary = {}
     for exp in expenses:
         category = exp['category']

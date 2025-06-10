@@ -5,12 +5,15 @@ from utils import log_audit, get_shared_data, store_shared_data
 from supabase import create_client, Client
 import os
 
-supabase_url = os.environ.get('SUPABASE_URL')
-supabase_key = os.environ.get('SUPABASE_KEY')
-supabase: Client = create_client(supabase_url, supabase_key)
-
 def render_dashboard(data, user_id):
     try:
+        supabase_url = os.environ.get('SUPABASE_URL')
+        supabase_key = os.environ.get('SUPABASE_KEY')
+
+        supabase = None
+        if supabase_url and supabase_key:
+            supabase: Client = create_client(supabase_url, supabase_key)
+        
         task = data.get('task')
         dynamodb = boto3.resource('dynamodb')
         table = dynamodb.Table('DashboardData')
@@ -31,8 +34,10 @@ def render_dashboard(data, user_id):
             blockgnosis_data = get_shared_data(f'blockchain_{user_id}', user_id) or {}
             revenue_data = get_shared_data(f'revenue_{user_id}', user_id) or {}
 
-            supabase_data = supabase.table('user_preferences').select('*').eq('user_id', user_id).execute()
-            preferences = supabase_data.data[0] if supabase_data.data else {}
+            preferences = {}
+            if supabase:
+                supabase_data = supabase.table('user_preferences').select('*').eq('user_id', user_id).execute()
+                preferences = supabase_data.data[0] if supabase_data.data else {}
 
             dashboard_data.update({
                 'shared_results': shared_results,
@@ -50,6 +55,8 @@ def render_dashboard(data, user_id):
             return dashboard_data
 
         elif task == 'update':
+            if not supabase:
+                return {"status": "error", "result": "Supabase not configured"}
             preferences = data.get('preferences', {})
             if not isinstance(preferences, dict):
                 return {"status": "error", "result": "Preferences must be a dictionary"}
@@ -69,6 +76,8 @@ def render_dashboard(data, user_id):
             return {'status': 'dashboard_updated'}
 
         elif task == 'fetch_tab_data':
+            if not supabase:
+                return {"status": "error", "result": "Supabase not configured"}
             tab = data.get('tab')
             if not tab:
                 return {"status": "error", "result": "Tab not specified"}

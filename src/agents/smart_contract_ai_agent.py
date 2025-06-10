@@ -1,37 +1,44 @@
-import json
 import time
-from utils import log_audit, store_shared_data, send_message
-from Blockchain import SmartContractManager
+import os
+from utils import log_audit, store_shared_data, get_config
+from blockchain import SmartContractManager
 
-def handle_request(data, user_id):
+
+def handle_contract_request(data, user_id):
+    """Handles smart contract related tasks."""
     try:
+        rpc_url = get_config('ETH_RPC_URL') or os.environ.get('ETH_RPC_URL')
+        contract_address = get_config('CONTRACT_ADDRESS') or '0xYourContract'
+        contract_abi = get_config('CONTRACT_ABI') or 'Your ABI'
+
+        if not rpc_url:
+            return {"status": "error", "result": "ETH_RPC_URL not configured"}
+
+        manager = SmartContractManager(
+            rpc_url=rpc_url,
+            contract_address=contract_address,
+            abi=contract_abi
+        )
+
         task = data.get('task')
         task_id = data.get('task_id', f"smart_contract_{int(time.time())}")
         response = {"status": "success", "result": {}, "task_id": task_id}
+        result = {}
 
         if task == "deploy_contract":
-            result = SmartContractManager.handle_request({'task': 'deploy'}, user_id)
-            response["result"] = result['result']
+            result = {"status": "error", "message": "Deploy contract not implemented"}
 
         elif task == "execute_task":
             code = data.get('code', '')
-            agent_address = data.get('agent_address', '0x' + '0' * 40)
-            result = SmartContractManager.handle_request({
-                'task': 'create_task',
-                'agent_address': agent_address,
-                'input': code,
-                'task_id': task_id
-            }, user_id)
-            response["result"] = result['result']
+            result = manager.store_data({'code': code, 'task_id': task_id}, user_id)
 
         elif task == "get_task_result":
-            result = SmartContractManager.handle_request({
-                'task': 'get_task',
-                'task_id': data.get('task_id', task_id)
-            }, user_id)
-            response["result"] = result['result']
+            result = manager.retrieve_data({'file_id': data.get('task_id')}, user_id)
 
-        store_shared_data(f'smart_contract_{task_id}', response["result"], user_id)
+        response["result"] = result
+        store_shared_data(
+            f'smart_contract_{task_id}', response["result"], user_id
+        )
         log_audit(user_id, f"smart_contract_{task}", response)
         return response
     except Exception as e:

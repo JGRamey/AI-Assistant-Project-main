@@ -7,6 +7,17 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+      STRIPE_API_KEY: ${{ secrets.STRIPE_API_KEY }}
+      ETH_RPC_URL: ${{ secrets.ETH_RPC_URL }}
+      ETH_PRIVATE_KEY: ${{ secrets.ETH_PRIVATE_KEY }}
+      CHAIN_ID: 11155111
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      SQS_QUEUE_URL: ${{ secrets.SQS_QUEUE_URL }}
+      YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
 
     steps:
     - uses: actions/checkout@v4
@@ -36,17 +47,7 @@ jobs:
     - run: |
         cd frontend
         npm install
-    - env:
-        SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-        SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
-        STRIPE_API_KEY: ${{ secrets.STRIPE_API_KEY }}
-        ETH_RPC_URL: ${{ secrets.ETH_RPC_URL }}
-        ETH_PRIVATE_KEY: ${{ secrets.ETH_PRIVATE_KEY }}
-        CHAIN_ID: 11155111
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        SQS_QUEUE_URL: ${{ secrets.SQS_QUEUE_URL }}
-        YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+    - name: Run Pytest
       run: pytest tests/unit/ --verbose --capture=no
     - run: |
         cd frontend

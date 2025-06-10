@@ -1,6 +1,7 @@
 from utils import log_audit
 import boto3
 
+
 def handle_alert_request(data, user_id):
     try:
         sns = boto3.client('sns')
