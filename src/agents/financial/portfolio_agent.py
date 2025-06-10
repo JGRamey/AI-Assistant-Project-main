@@ -7,7 +7,7 @@ def handle_portfolio_request(data, user_id):
     task = data.get('task')
     try:
         if task == 'view_portfolio':
-            exchange = ccxt.coinbasepro({
+            exchange = ccxt.coinbase({
                 'apiKey': data.get('api_key'),
                 'secret': data.get('api_secret')
             })

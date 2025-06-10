@@ -18,7 +18,9 @@ def handle_trade_request(data, user_id):
                 ohlcv = exchange.fetch_ohlcv(symbol, '1d', limit=100)
                 df = pd.DataFrame(
                     ohlcv,
-                    columns=['timestamp', 'open', 'high', 'low', 'close', 'volume']
+                    columns=[
+                        'timestamp', 'open', 'high', 'low', 'close', 'volume'
+                    ]
                 )
                 df_with_ta = add_all_ta_features(
                     df, open="open", high="high", low="low", close="close",

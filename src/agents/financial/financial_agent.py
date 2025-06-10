@@ -19,7 +19,10 @@ def handle_request(data, user_id):
             params = [age, retirement_age, annual_income, savings_rate,
                       expected_return]
             if any(v < 0 for v in params):
-                return {"status": "error", "result": "Invalid input parameters"}
+                return {
+                    "status": "error",
+                    "result": "Invalid input parameters",
+                }
 
             years_to_retirement = retirement_age - age
             if years_to_retirement <= 0:
