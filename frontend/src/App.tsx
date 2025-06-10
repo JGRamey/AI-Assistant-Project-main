@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Sun, Moon, Mic, MicOff } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Dashboard from './pages/Dashboard';
@@ -17,6 +17,13 @@ function App() {
   const [darkMode, setDarkMode] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [showMainInterface, setShowMainInterface] = useState(false);
+
+  const handleNavigate = (page: string) => {
+    if (['dashboard', 'tasks', 'projects', 'agents', 'analytics', 'settings'].includes(page)) {
+      setCurrentPage(page as Page);
+      setShowMainInterface(true);
+    }
+  };
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -126,7 +133,7 @@ function App() {
               <VoiceInterface 
                 isListening={isListening}
                 onToggleListening={toggleVoice}
-                onNavigate={setCurrentPage}
+                onNavigate={handleNavigate}
                 onShowInterface={() => setShowMainInterface(true)}
               />
               <FloatingNavigation 
