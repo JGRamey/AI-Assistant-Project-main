@@ -1,10 +1,14 @@
 import pytest
 from unittest.mock import patch, MagicMock
-from agents import coding_agent, email_agent, trading_agent, priority_agent, news_agent, alert_agent, crm_agent
+from agents import priority_agent, news_agent, alert_agent, crm_agent
+from agents.coding import coding_agent
+from agents.communication import email_agent
+from agents.financial import trading_agent
+from agents.financial.expense_report import generate_report
 
-@patch('agents.coding_agent.log_audit')
-@patch('agents.coding_agent.send_message')
-@patch('agents.coding_agent.store_shared_data')
+@patch('agents.coding.coding_agent.log_audit')
+@patch('agents.coding.coding_agent.send_message')
+@patch('agents.coding.coding_agent.store_shared_data')
 def test_coding_agent_handle_code_request(
     mock_store_shared_data, mock_send_message, mock_log_audit
 ):
@@ -23,8 +27,8 @@ def test_coding_agent_handle_code_request(
     mock_send_message.assert_called_once()
     mock_log_audit.assert_called_once()
 
-@patch('agents.email_agent.build')
-@patch('agents.email_agent.log_audit')
+@patch('agents.communication.email_agent.build')
+@patch('agents.communication.email_agent.log_audit')
 def test_email_agent_handle_email_request(mock_log_audit, mock_build):
     """Test the handle_email_request function of the email agent."""
     # Arrange
@@ -49,8 +53,8 @@ def test_email_agent_handle_email_request(mock_log_audit, mock_build):
     mock_service.users().messages().send.assert_called_once()
     mock_log_audit.assert_called_with(user_id, 'email_task', {'task': 'send'})
 
-@patch('agents.trading_agent.ccxt.coinbase')
-@patch('agents.trading_agent.log_audit')
+@patch('agents.financial.trading_agent.ccxt.coinbase')
+@patch('agents.financial.trading_agent.log_audit')
 def test_trading_agent_handle_trade_request(mock_log_audit, mock_coinbase):
     """Test the handle_trade_request function of the trading agent."""
     # Arrange
@@ -209,3 +213,31 @@ def test_crm_agent_handle_crm_request(mock_store_shared_data, mock_send_message,
         'phone': '1234567890'
     })
     mock_log_audit.assert_called()
+
+@patch('agents.financial.expense_report.supabase')
+@patch('agents.financial.expense_report.store_shared_data')
+@patch('agents.financial.expense_report.log_audit')
+def test_expense_report_generate_report(mock_log_audit, mock_store_shared_data, mock_supabase):
+    """Test the generate_report function of the expense report agent."""
+    # Arrange
+    user_id = "user123"
+    task_data = {'task': 'generate_expense_report'}
+    mock_expenses = [
+        {'category': 'Food', 'amount': 100},
+        {'category': 'Travel', 'amount': 250},
+        {'category': 'Food', 'amount': 50},
+    ]
+
+    mock_supabase_response = MagicMock()
+    mock_supabase_response.data = mock_expenses
+    mock_supabase.table.return_value.select.return_value.eq.return_value.execute.return_value = mock_supabase_response
+
+    # Act
+    result = generate_report(task_data, user_id)
+
+    # Assert
+    expected_summary = {'Food': 150, 'Travel': 250}
+    assert result['status'] == 'success'
+    assert result['result'] == expected_summary
+    mock_store_shared_data.assert_called_once()
+    mock_log_audit.assert_called_with(user_id, 'expense_report', expected_summary)

@@ -2,7 +2,7 @@ import os
 import json
 import boto3
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from supabase import create_client, Client
 from config_manager import get_config
 
@@ -27,7 +27,7 @@ def log_audit(user_id: str, action: str, details: dict):
                 'user_id': user_id,
                 'action': action,
                 'details': json.dumps(details),
-                'timestamp': datetime.utcnow().isoformat()
+                'timestamp': datetime.now(timezone.utc).isoformat()
             }).execute()
         logger.info(f"Audit log: user={user_id}, action={action}, details={details}")
     except Exception as e:
@@ -40,7 +40,7 @@ def store_shared_data(key: str, value: dict, user_id: str):
         table.put_item(Item={
             'key': f'{user_id}:{key}',
             'value': json.dumps(value),
-            'timestamp': datetime.utcnow().isoformat()
+            'timestamp': datetime.now(timezone.utc).isoformat()
         })
         logger.info(f"Stored data: key={key}, user={user_id}")
     except Exception as e:

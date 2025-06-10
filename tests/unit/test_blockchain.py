@@ -35,7 +35,7 @@ def test_store_data(mock_encrypt_data, manager):
     # Arrange
     mock_encrypt_data.return_value = b'encrypted_data'
     tx_hash = '0x12345'
-    manager.mock_contract.functions.storeFile().transact.return_value = tx_hash.encode('utf-8')
+    manager.mock_contract.functions.storeFile.return_value.transact.return_value = tx_hash.encode('utf-8')
     manager.mock_w3.eth.wait_for_transaction_receipt.return_value = {'status': 1}
     
     data_to_store = {'key': 'value'}
@@ -59,7 +59,7 @@ def test_retrieve_data(mock_decrypt_data, manager):
     encrypted_data_from_contract = b'encrypted_data_from_contract'
     decrypted_data_dict = {'key': 'retrieved_value'}
     
-    manager.mock_contract.functions.getFile().call.return_value = encrypted_data_from_contract
+    manager.mock_contract.functions.getFile.return_value.call.return_value = encrypted_data_from_contract
     mock_decrypt_data.return_value = json.dumps(decrypted_data_dict)
     
     # Act

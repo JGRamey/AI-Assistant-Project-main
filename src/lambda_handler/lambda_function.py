@@ -1,6 +1,6 @@
 import json
 import os
-from core_platform.agent_registry import get_handler, get_agent_module
+from core_platform.agent_registry import get_handler, get_agent_module, get_agent_handler
 from workflows import execute_workflow
 from utils import log_audit, parse_task
 
@@ -39,10 +39,9 @@ def lambda_handler(event, context):
                 result = execute_workflow(workflow_params, user_id)
             elif task_plan.get('agent'):
                 agent_name = task_plan['agent']
-                agent_module = get_agent_module(agent_name)
-                if agent_module:
-                    result = agent_module.handle_request(
-                        task_plan['params'], user_id)
+                handler = get_agent_handler(agent_name)
+                if handler:
+                    result = handler(task_plan['params'], user_id)
                 else:
                     result = {'error': f'Unknown agent: {agent_name}'}
             else:

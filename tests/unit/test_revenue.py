@@ -36,9 +36,9 @@ def test_store_and_get_shared_data(mock_dynamodb):
 
     mock_dynamodb.Table.assert_called_with('SharedData')
     mock_table.put_item.assert_called_once()
-    put_args, _ = mock_table.put_item.call_args
-    assert put_args[0]['Item']['key'] == f'{user_id}:{key}'
-    assert put_args[0]['Item']['value'] == '{"data": "some_value"}'
+    args, kwargs = mock_table.put_item.call_args
+    assert kwargs['Item']['key'] == f'{user_id}:{key}'
+    assert kwargs['Item']['value'] == '{"data": "some_value"}'
 
     # Test retrieving data
     mock_table.get_item.return_value = {

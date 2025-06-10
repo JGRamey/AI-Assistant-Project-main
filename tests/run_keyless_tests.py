@@ -9,13 +9,13 @@ import traceback
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')))
 
 # Import components to test
-from Lambda.lambda_function import lambda_handler
-from agents.coding_agent import handle_code_request
-from agents.Financial_Agent import handle_request as financial_agent_handle
-from agents.smart_contract_ai_agent import handle_smart_contract_request
-from platform.content.script_generator import handle_script_request
-from platform.finances.revenue import handle_revenue_request
-from Blockchain.SmartContractManager import SmartContractManager
+from lambda_handler.lambda_function import lambda_handler
+from agents.coding.coding_agent import handle_code_request
+from agents.financial.financial_agent import handle_request as financial_agent_handle
+from agents.coding.smart_contract_ai_agent import handle_smart_contract_request
+from core_platform.content.script_generator import handle_script_request
+from core_platform.finances.revenue import handle_revenue_request
+from blockchain.SmartContractManager import SmartContractManager
 from utils import store_shared_data, get_shared_data
 
 # Test results collector
