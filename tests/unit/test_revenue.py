@@ -4,8 +4,19 @@ from utils import log_audit, store_shared_data, get_shared_data
 
 @patch('utils.helpers.supabase')
 @patch('utils.helpers.logger')
-def test_log_audit(mock_logger, mock_supabase):
-    """Test that log_audit calls Supabase and the logger."""
+def test_log_audit(
+    mock_logger: MagicMock,
+    mock_supabase: MagicMock,
+) -> None:
+    """Test that log_audit calls Supabase and the logger.
+
+    This test verifies that the log_audit function correctly logs to both
+    the logger and Supabase database.
+
+    Args:
+        mock_logger: Mocked logger instance
+        mock_supabase: Mocked Supabase client
+    """
     # Arrange
     mock_supabase.table.return_value.insert.return_value.execute.return_value = MagicMock()
 
@@ -23,8 +34,17 @@ def test_log_audit(mock_logger, mock_supabase):
     assert insert_args[0]['action'] == 'test_action'
 
 @patch('utils.helpers.dynamodb')
-def test_store_and_get_shared_data(mock_dynamodb):
-    """Test storing and retrieving data from DynamoDB."""
+def test_store_and_get_shared_data(
+    mock_dynamodb: MagicMock,
+) -> None:
+    """Test storing and retrieving data from DynamoDB.
+
+    This test verifies that shared data can be stored and retrieved
+    correctly from DynamoDB.
+
+    Args:
+        mock_dynamodb: Mocked DynamoDB client
+    """
     mock_table = MagicMock()
     mock_dynamodb.Table.return_value = mock_table
 

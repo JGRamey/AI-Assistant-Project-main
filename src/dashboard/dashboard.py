@@ -1,11 +1,13 @@
-import json
 import boto3
 import time
-from utils import log_audit, get_shared_data, store_shared_data
-from supabase import create_client, Client
 import os
+from typing import Dict, Any, Optional
 
-def render_dashboard(data, user_id):
+from supabase import create_client, Client
+from utils import log_audit, get_shared_data, store_shared_data
+
+
+def render_dashboard(data: Dict[str, Any], user_id: str) -> Dict[str, Any]:
     try:
         supabase_url = os.environ.get('SUPABASE_URL')
         supabase_key = os.environ.get('SUPABASE_KEY')
@@ -23,7 +25,10 @@ def render_dashboard(data, user_id):
             dashboard_data = response.get('Item', {})
             task_ids = data.get('task_ids', [])
 
-            shared_results = {tid: get_shared_data(f'task_outcome_{tid}', user_id) for tid in task_ids}
+            shared_results = {
+                tid: get_shared_data(f'task_outcome_{tid}', user_id)
+                for tid in task_ids
+            }
             financial_data = get_shared_data(f'financial_{user_id}', user_id) or {}
             portfolio_data = get_shared_data(f'portfolio_{user_id}', user_id) or {}
             trading_data = get_shared_data(f'trading_{user_id}', user_id) or {}
@@ -36,7 +41,10 @@ def render_dashboard(data, user_id):
 
             preferences = {}
             if supabase:
-                supabase_data = supabase.table('user_preferences').select('*').eq('user_id', user_id).execute()
+                supabase_data = (supabase.table('user_preferences')
+                                .select('*')
+                                .eq('user_id', user_id)
+                                .execute())
                 preferences = supabase_data.data[0] if supabase_data.data else {}
 
             dashboard_data.update({
@@ -50,7 +58,7 @@ def render_dashboard(data, user_id):
                 'crm_data': crm_data,
                 'blockgnosis_data': blockgnosis_data,
                 'revenue_data': revenue_data,
-                'preferences': preferences
+                'preferences': preferences,
             })
             return dashboard_data
 
@@ -61,11 +69,13 @@ def render_dashboard(data, user_id):
             if not isinstance(preferences, dict):
                 return {"status": "error", "result": "Preferences must be a dictionary"}
                 
-            supabase.table('user_preferences').upsert({
-                'user_id': user_id,
-                'preferences': preferences,
-                'created_at': time.strftime("%Y-%m-%dT%H:%M:%SZ")
-            }).execute()
+            (supabase.table('user_preferences')
+             .upsert({
+                 'user_id': user_id,
+                 'preferences': preferences,
+                 'created_at': time.strftime("%Y-%m-%dT%H:%M:%SZ")
+             })
+             .execute())
             table.update_item(
                 Key={'user_id': user_id},
                 UpdateExpression='SET #attr = :val',
@@ -84,7 +94,10 @@ def render_dashboard(data, user_id):
                 
             key = f'{tab}_{user_id}'
             tab_data = get_shared_data(key, user_id) or {}
-            supabase_data = supabase.table(tab).select('*').eq('user_id', user_id).execute()
+            supabase_data = (supabase.table(tab)
+                            .select('*')
+                            .eq('user_id', user_id)
+                            .execute())
             tab_data.update({'supabase': supabase_data.data or []})
             return tab_data
 

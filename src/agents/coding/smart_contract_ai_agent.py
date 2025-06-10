@@ -26,14 +26,19 @@ def handle_contract_request(data, user_id):
         result = {}
 
         if task == "deploy_contract":
-            result = {"status": "error", "message": "Deploy contract not implemented"}
+            result = {
+                "status": "error",
+                "message": "Deploy contract not implemented",
+            }
 
         elif task == "execute_task":
             code = data.get('code', '')
-            result = manager.store_data({'code': code, 'task_id': task_id}, user_id)
+            payload = {'code': code, 'task_id': task_id}
+            result = manager.store_data(payload, user_id)
 
         elif task == "get_task_result":
-            result = manager.retrieve_data({'file_id': data.get('task_id')}, user_id)
+            payload = {'file_id': data.get('task_id')}
+            result = manager.retrieve_data(payload, user_id)
 
         response["result"] = result
         store_shared_data(

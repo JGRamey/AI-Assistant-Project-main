@@ -1,6 +1,8 @@
 import json
 import os
-from core_platform.agent_registry import get_handler, get_agent_module, get_agent_handler
+from core_platform.agent_registry import (
+    get_handler, get_agent_module, get_agent_handler
+)
 from workflows import execute_workflow
 from utils import log_audit, parse_task
 

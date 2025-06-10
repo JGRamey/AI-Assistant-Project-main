@@ -10,8 +10,12 @@ MOCK_ABI = '[]'
 MOCK_USER_ID = "0xMockUserAddress"
 
 @pytest.fixture
-def manager():
-    """Fixture to create a SmartContractManager instance with a mocked Web3 dependency."""
+def manager() -> SmartContractManager:
+    """Fixture to create a SmartContractManager instance with a mocked Web3 dependency.
+
+    This fixture provides a SmartContractManager instance with all necessary mocks for testing.
+    The Web3 instance is mocked to avoid actual blockchain interactions.
+    """
     with patch('blockchain.Web3') as mock_web3_class:
         mock_w3_instance = MagicMock()
         mock_contract_instance = MagicMock()
@@ -30,7 +34,10 @@ def manager():
         yield manager_instance
 
 @patch('blockchain.encrypt_data')
-def test_store_data(mock_encrypt_data, manager):
+def test_store_data(
+    mock_encrypt_data: MagicMock,
+    manager: SmartContractManager,
+) -> None:
     """Test the store_data method of SmartContractManager."""
     # Arrange
     mock_encrypt_data.return_value = b'encrypted_data'
@@ -52,7 +59,10 @@ def test_store_data(mock_encrypt_data, manager):
     assert result['tx_hash'] == tx_hash.encode('utf-8').hex()
 
 @patch('blockchain.decrypt_data')
-def test_retrieve_data(mock_decrypt_data, manager):
+def test_retrieve_data(
+    mock_decrypt_data: MagicMock,
+    manager: SmartContractManager,
+) -> None:
     """Test the retrieve_data method of SmartContractManager."""
     # Arrange
     file_id = 'file123'
@@ -72,7 +82,10 @@ def test_retrieve_data(mock_decrypt_data, manager):
     assert result['data'] == decrypted_data_dict
 
 @patch('blockchain.log_audit')
-def test_store_data_failure(mock_log_audit, manager):
+def test_store_data_failure(
+    mock_log_audit: MagicMock,
+    manager: SmartContractManager,
+) -> None:
     """Test store_data failure handling."""
     # Arrange
     manager.mock_contract.functions.storeFile().transact.side_effect = Exception("Blockchain error")

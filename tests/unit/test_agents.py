@@ -10,8 +10,10 @@ from agents.financial.expense_report import generate_report
 @patch('agents.coding.coding_agent.send_message')
 @patch('agents.coding.coding_agent.store_shared_data')
 def test_coding_agent_handle_code_request(
-    mock_store_shared_data, mock_send_message, mock_log_audit
-):
+    mock_store_shared_data: MagicMock,
+    mock_send_message: MagicMock,
+    mock_log_audit: MagicMock,
+) -> None:
     """Test the handle_code_request function of the coding agent for code generation."""
     # Arrange
     user_id = "user123"
@@ -29,7 +31,10 @@ def test_coding_agent_handle_code_request(
 
 @patch('agents.communication.email_agent.build')
 @patch('agents.communication.email_agent.log_audit')
-def test_email_agent_handle_email_request(mock_log_audit, mock_build):
+def test_email_agent_handle_email_request(
+    mock_log_audit: MagicMock,
+    mock_build: MagicMock,
+) -> None:
     """Test the handle_email_request function of the email agent."""
     # Arrange
     user_id = "user456"
@@ -55,7 +60,10 @@ def test_email_agent_handle_email_request(mock_log_audit, mock_build):
 
 @patch('agents.financial.trading_agent.ccxt.coinbase')
 @patch('agents.financial.trading_agent.log_audit')
-def test_trading_agent_handle_trade_request(mock_log_audit, mock_coinbase):
+def test_trading_agent_handle_trade_request(
+    mock_log_audit: MagicMock,
+    mock_coinbase: MagicMock,
+) -> None:
     """Test the handle_trade_request function of the trading agent."""
     # Arrange
     user_id = "user789"
@@ -94,7 +102,10 @@ def test_trading_agent_handle_trade_request(mock_log_audit, mock_coinbase):
 
 @patch('agents.priority_agent.googleapiclient.discovery.build')
 @patch('agents.priority_agent.log_audit')
-def test_priority_agent_handle_priority_request(mock_log_audit, mock_build):
+def test_priority_agent_handle_priority_request(
+    mock_log_audit: MagicMock,
+    mock_build: MagicMock,
+) -> None:
     """Test the handle_priority_request function of the priority agent."""
     # Arrange
     user_id = "user101"
@@ -127,7 +138,10 @@ def test_priority_agent_handle_priority_request(mock_log_audit, mock_build):
 
 @patch('agents.news_agent.requests.get')
 @patch('agents.news_agent.log_audit')
-def test_news_agent_handle_news_request(mock_log_audit, mock_requests_get):
+def test_news_agent_handle_news_request(
+    mock_log_audit: MagicMock,
+    mock_requests_get: MagicMock,
+) -> None:
     """Test the handle_news_request function of the news agent."""
     # Arrange
     user_id = "user112"
@@ -155,7 +169,10 @@ def test_news_agent_handle_news_request(mock_log_audit, mock_requests_get):
 
 @patch('agents.alert_agent.boto3.client')
 @patch('agents.alert_agent.log_audit')
-def test_alert_agent_handle_alert_request(mock_log_audit, mock_boto3_client):
+def test_alert_agent_handle_alert_request(
+    mock_log_audit: MagicMock,
+    mock_boto3_client: MagicMock,
+) -> None:
     """Test the handle_alert_request function of the alert agent."""
     # Arrange
     user_id = "user113"
@@ -183,7 +200,12 @@ def test_alert_agent_handle_alert_request(mock_log_audit, mock_boto3_client):
 @patch('agents.crm_agent.log_audit')
 @patch('agents.crm_agent.send_message')
 @patch('agents.crm_agent.store_shared_data')
-def test_crm_agent_handle_crm_request(mock_store_shared_data, mock_send_message, mock_log_audit, mock_supabase):
+def test_crm_agent_handle_crm_request(
+    mock_store_shared_data: MagicMock,
+    mock_send_message: MagicMock,
+    mock_log_audit: MagicMock,
+    mock_supabase: MagicMock,
+) -> None:
     """Test the handle_crm_request function of the crm agent."""
     # Arrange
     user_id = "user_crm_123"
@@ -214,15 +236,19 @@ def test_crm_agent_handle_crm_request(mock_store_shared_data, mock_send_message,
     })
     mock_log_audit.assert_called()
 
-@patch('agents.financial.expense_report.supabase')
-@patch('agents.financial.expense_report.store_shared_data')
 @patch('agents.financial.expense_report.log_audit')
-def test_expense_report_generate_report(mock_log_audit, mock_store_shared_data, mock_supabase):
+@patch('agents.financial.expense_report.store_shared_data')
+@patch('agents.financial.expense_report.supabase')
+def test_expense_report_generate_report(
+    mock_log_audit: MagicMock,
+    mock_store_shared_data: MagicMock,
+    mock_supabase: MagicMock,
+) -> None:
     """Test the generate_report function of the expense report agent."""
     # Arrange
-    user_id = "user123"
-    task_data = {'task': 'generate_expense_report'}
-    mock_expenses = [
+    user_id: str = "user123"
+    task_data: dict = {'task': 'generate_expense_report'}
+    mock_expenses: list = [
         {'category': 'Food', 'amount': 100},
         {'category': 'Travel', 'amount': 250},
         {'category': 'Food', 'amount': 50},

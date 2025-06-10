@@ -2,6 +2,8 @@ import os
 from web3 import Web3
 from solcx import compile_source
 
+
+
 class SmartContractManager:
     def __init__(self):
         self.w3 = None
@@ -33,6 +35,7 @@ class SmartContractManager:
             'from': self.account.address,
             'nonce': self.w3.eth.get_transaction_count(self.account.address),
             'gas': contract.constructor(*constructor_args).estimate_gas(),
+
             'chainId': self.chain_id
         })
         signed_tx = self.w3.eth.account.sign_transaction(tx, self.eth_private_key)

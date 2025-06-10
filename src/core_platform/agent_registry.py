@@ -63,8 +63,14 @@ HANDLER_REGISTRY = {
     # Platform and other actions
     'coordinate': execute_workflow,
     'dashboard': render_dashboard,
-    'store': lambda data, user_id: manager.store_data(data, user_id) if manager else {'status': 'error', 'message': 'Blockchain not configured'},
-    'retrieve': lambda data, user_id: manager.retrieve_data(data, user_id) if manager else {'status': 'error', 'message': 'Blockchain not configured'},
+    'store': (
+        lambda data, user_id: manager.store_data(data, user_id)
+        if manager else {'status': 'error', 'message': 'Blockchain not configured'}
+    ),
+    'retrieve': (
+        lambda data, user_id: manager.retrieve_data(data, user_id)
+        if manager else {'status': 'error', 'message': 'Blockchain not configured'}
+    ),
     'content_script': script_generator.handle_script_request,
     'social_post': post_scheduler.handle_post_request,
     'newsletter': newsletter_automation.handle_newsletter_request,
@@ -79,20 +85,58 @@ def get_handler(action_name):
 # This registry maps agent module names to the modules themselves
 # This is needed for the SQS and delegate actions that refer to agents by name
 AGENT_MODULES = {
-    'coding_agent': coding_agent, 'trading_agent': trading_agent,
-    'priority_agent': priority_agent, 'news_agent': news_agent, 'alert_agent': alert_agent,
-    'portfolio_agent': portfolio_agent, 'crm_agent': crm_agent, 'notes_agent': notes_agent,
-    'sentiment_agent': sentiment_agent, 'snippet_agent': snippet_agent,
+    'coding_agent': coding_agent,
+    'trading_agent': trading_agent,
+    'priority_agent': priority_agent,
+    'news_agent': news_agent,
+    'alert_agent': alert_agent,
+    'portfolio_agent': portfolio_agent,
+    'crm_agent': crm_agent,
+    'notes_agent': notes_agent,
+    'sentiment_agent': sentiment_agent,
+    'snippet_agent': snippet_agent,
     'learning_agent': learning_agent,
-    'voice_agent': voice_agent, 'key_agent': key_agent, 'journal_agent': journal_agent,
-    'update_agent': update_agent, 'smart_contract_ai_agent': smart_contract_ai_agent,
+    'voice_agent': voice_agent,
+    'key_agent': key_agent,
+    'journal_agent': journal_agent,
+    'update_agent': update_agent,
+    'smart_contract_ai_agent': smart_contract_ai_agent,
     'financial_agent': financial_agent,
-    'email_agent': email_agent, 'social_agent': social_agent, 'texts_agent': texts_agent,
-    'coding_agent': coding_agent, 'snippet_agent': snippet_agent
+    'email_agent': email_agent,
+    'social_agent': social_agent,
+    'texts_agent': texts_agent
 }
+
+
 
 def get_agent_module(agent_name):
     return AGENT_MODULES.get(agent_name)
+
+
+# This registry maps agent names to their handler functions
+AGENT_HANDLERS = {
+    'coding_agent': coding_agent.handle_code_request,
+    'email_agent': email_agent.handle_email_request,
+    'texts_agent': texts_agent.handle_texts_request,
+    'trading_agent': trading_agent.handle_trade_request,
+    'priority_agent': priority_agent.handle_priority_request,
+    'news_agent': news_agent.handle_news_request,
+    'alert_agent': alert_agent.handle_alert_request,
+    'portfolio_agent': portfolio_agent.handle_portfolio_request,
+    'crm_agent': crm_agent.handle_crm_request,
+    'notes_agent': notes_agent.handle_notes_request,
+
+    'sentiment_agent': sentiment_agent.handle_sentiment_request,
+    'snippet_agent': snippet_agent.handle_snippet_request,
+    'financial_agent': financial_agent.handle_request,
+    'social_agent': social_agent.handle_social_request,
+    'learning_agent': learning_agent.handle_learning_request,
+    'voice_agent': voice_agent.handle_voice_request,
+    'key_agent': key_agent.handle_key_request,
+    'journal_agent': journal_agent.handle_journal_request,
+    'update_agent': update_agent.handle_update_request,
+    'smart_contract_ai_agent': smart_contract_ai_agent.handle_contract_request
+}
 
 # This registry maps agent names to their handler functions
 AGENT_HANDLERS = {

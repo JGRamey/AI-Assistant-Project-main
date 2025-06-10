@@ -25,7 +25,7 @@ def handle_update_request(data, user_id):
                 response = requests.post(
                     'https://api.x.ai/grok/summarize',
                     json={'text': data.get('changes')},
-                    timeout=10
+                    timeout=10,
                 )
                 response.raise_for_status()
                 notes = response.json().get('summary', data.get('changes'))

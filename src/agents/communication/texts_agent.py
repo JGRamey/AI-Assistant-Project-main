@@ -17,4 +17,3 @@ def handle_texts_request(data, user_id):
         'status': 'success',
         'message': 'Text message functionality not yet implemented.'
     }
-
