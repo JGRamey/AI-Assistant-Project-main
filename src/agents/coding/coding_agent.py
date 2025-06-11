@@ -1,7 +1,7 @@
 import requests
 import time
-from utils import log_audit, send_message, store_shared_data, get_shared_data
-from config_manager import get_config
+from src.utils import log_audit, send_message, store_shared_data, get_shared_data
+from src.config_manager import get_config
 
 
 def handle_code_request(data, user_id):

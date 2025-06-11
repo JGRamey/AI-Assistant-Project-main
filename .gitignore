@@ -6,3 +6,5 @@ __pycache__/
 node_modules/
 shared_data.json
 .env
+.pytest_cache/
+.DS_Store

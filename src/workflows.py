@@ -5,7 +5,7 @@ consisting of multiple tasks.
 """
 from typing import Any, Dict
 
-from utils import log_audit
+from src.utils.helpers import log_audit
 
 
 def execute_workflow(data: Dict[str, Any], user_id: str) -> Dict[str, Any]:

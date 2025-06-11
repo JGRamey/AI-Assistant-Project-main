@@ -1,6 +1,6 @@
 from googleapiclient.discovery import build
 import base64
-from utils import log_audit
+from src.utils import log_audit
 
 
 def handle_email_request(data, user_id):

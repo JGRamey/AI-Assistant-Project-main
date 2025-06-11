@@ -1,5 +1,5 @@
 import requests
-from utils import log_audit
+from src.utils import log_audit
 
 
 def handle_news_request(data, user_id):
