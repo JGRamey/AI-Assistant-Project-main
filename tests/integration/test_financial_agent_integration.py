@@ -3,13 +3,14 @@ import sys
 import os
 from dotenv import load_dotenv
 
-load_dotenv()
+load_dotenv(override=True)
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 
 from src.agents.financial.financial_agent import handle_request
-from src.utils.helpers import supabase
+from src.utils.database import supabase_client as supabase
 
+@unittest.skipIf(supabase is None, "Supabase client not initialized. Skipping integration tests.")
 class TestFinancialAgentIntegration(unittest.TestCase):
 
     def setUp(self):

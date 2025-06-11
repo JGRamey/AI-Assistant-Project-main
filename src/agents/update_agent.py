@@ -1,7 +1,8 @@
 import sqlite3
 import time
 import requests
-from src.utils.helpers import log_audit, encrypt_data, decrypt_data
+from src.utils.database import log_audit
+from src.utils.encryption import encrypt_data, decrypt_data
 
 
 def handle_update_request(data, user_id):

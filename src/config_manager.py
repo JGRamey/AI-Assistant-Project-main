@@ -2,10 +2,12 @@ import json
 import os
 import boto3
 from botocore.exceptions import ClientError
+from dotenv import load_dotenv
 
 
 class ConfigManager:
     def __init__(self, config_path='config/config.json'):  # Default config path
+        load_dotenv(override=True)
         self.config = self._load_config_from_file(config_path)
         self._load_secrets()
 

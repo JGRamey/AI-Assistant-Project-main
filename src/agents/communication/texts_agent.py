@@ -3,7 +3,7 @@ This agent handles communication via text messages.
 It requires user consent and strong privacy/security measures.
 """
 
-from src.utils.helpers import log_audit
+from src.utils.database import log_audit
 
 
 def handle_texts_request(data, user_id):

@@ -22,7 +22,7 @@ from .financial import (
     financial_agent
 )
 
-from src.dashboard.dashboard import render_dashboard
+from src.backend.dashboard import render_dashboard
 from src.workflows import execute_workflow
 from src.utils import get_config
 

@@ -1,4 +1,4 @@
-from src.utils.helpers import log_audit
+from src.utils.database import log_audit
 import tweepy
 
 

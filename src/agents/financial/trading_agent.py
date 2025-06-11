@@ -1,7 +1,7 @@
 import ccxt
 import pandas as pd
 from ta import add_all_ta_features
-from src.utils.helpers import log_audit
+from src.utils.database import log_audit
 
 
 def handle_trade_request(data, user_id):

@@ -6,24 +6,22 @@ and configuration management.
 """
 
 # Re-export commonly used functions
-from .helpers import (
-    log_audit,
-    store_shared_data,
-    get_shared_data,
-    send_message,
-    supabase,
-)
-from .log_utils import parse_task, encrypt_data, decrypt_data
+from .aws_clients import dynamodb, sqs, store_shared_data, get_shared_data, send_message
 from .config_manager import get_config
+from .database import supabase_client, log_audit
+from .encryption import encrypt_data, decrypt_data
+from .logging_config import logger
 
 __all__ = [
-    'log_audit',
+    'dynamodb',
+    'sqs',
     'store_shared_data',
     'get_shared_data',
     'send_message',
-    'supabase',
-    'parse_task',
+    'get_config',
+    'supabase_client',
+    'log_audit',
     'encrypt_data',
     'decrypt_data',
-    'get_config',
+    'logger',
 ]

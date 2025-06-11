@@ -8,3 +8,7 @@ shared_data.json
 .env
 .pytest_cache/
 .DS_Store
+config.json
+config/config.json
+config/permissions.json
+config/keys.json
